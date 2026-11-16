@@ -19,30 +19,94 @@ $headers = [
     "User-Agent: TCC-Acampamento-Andrey"
 ];
 
+// Função para validar se o CPF é matematicamente correto e possui 11 dígitos reais
+function validaCPF($cpf) {
+    // Remove tudo o que não for número
+    $cpf = preg_replace('/[^0-9]/', '', $cpf);
+    
+    // Verifica se tem 11 dígitos ou se são sequências repetidas (ex: 11111111111)
+    if (strlen($cpf) != 11 || preg_match('/(\d)\1{10}/', $cpf)) {
+        return false;
+    }
+
+    // Validação dos dígitos verificadores do CPF
+    for ($t = 9; $t < 11; $t++) {
+        for ($d = 0, $c = 0; $c < $t; $c++) {
+            $d += $cpf[$c] * (($t + 1) - $c);
+        }
+        $d = ((10 * $d) % 11) % 10;
+        if ($cpf[$c] != $d) {
+            return false;
+        }
+    }
+    return true;
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
-    $nome = $_POST['nome'];
-    $cpf = $_POST['cpf'];
-    $data_nascimento = $_POST['data_nascimento'];
-    $genero = $_POST['genero'];
-    $telefone = $_POST['telefone'];
-    $email = $_POST['email'];
-    $endereco = $_POST['endereco'];
-    $medicamento_controlado = $_POST['medicamento_controlado'];
-    $restricao_alimentar = $_POST['restricao_alimentar'];
-    $alergia = $_POST['alergia'];
-    $contato_emergencia = $_POST['contato_emergencia'];
-    $nome_contato_emergencia = $_POST['nome_contato_emergencia'];
+    // Captura dos dados básicos
+    $nome = $_POST['nome'] ?? '';
+    $cpf = $_POST['cpf'] ?? '';
+    
+    // VALIDAÇÃO DE SEGURANÇA: Impede o prosseguimento se o CPF for inválido
+    if (!validaCPF($cpf)) {
+        echo "<div style='font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 25px; border: 1px solid #f5c6cb; background: #f8d7da; color: #721c24; border-radius: 8px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05);'>";
+        echo "<h3 style='margin-top: 0; color: #721c24;'>Erro de Validação!</h3>";
+        echo "<p>O CPF informado é inválido ou incompleto: <strong style='font-family: monospace; font-size: 16px;'>" . htmlspecialchars($cpf) . "</strong></p>";
+        echo "<p style='font-size: 13px; color: #555;'>Por favor, certifique-se de preencher todos os 11 dígitos corretamente.</p>";
+        echo "<br><a href='index.php' style='background-color: #721c24; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;'>Voltar e Corrigir</a>";
+        echo "</div>";
+        exit(); // Interrompe o script imediatamente
+    }
+
+    $data_nascimento = $_POST['data_nascimento'] ?? '';
+    $genero = $_POST['genero'] ?? '';
+    $telefone = $_POST['telefone'] ?? '';
+    $email = $_POST['email'] ?? '';
+    
+    // Captura dos novos campos de endereço
+    $cep = $_POST['cep'] ?? '';
+    $rua = $_POST['rua'] ?? '';
+    $numero = $_POST['numero'] ?? '';
+    $complemento = $_POST['complemento'] ?? '';
+    $bairro = $_POST['bairro'] ?? '';
+    $cidade = $_POST['cidade'] ?? '';
+    $estado = $_POST['estado'] ?? '';
+
+    // Captura dos campos de saúde e tamanho
+    $medicamento_controlado = $_POST['medicamento_controlado'] ?? '';
+    $restricao_alimentar = $_POST['restricao_alimentar'] ?? '';
+    $descricao_alimentar = $_POST['descricao_alimentar'] ?? null;
+    $alergia = $_POST['alergia'] ?? '';
+    $descricao_alergia = $_POST['descricao_alergia'] ?? null;
+    $tamanho_camiseta = $_POST['tamanho_camiseta'] ?? '';
+
+    // Captura dos contatos de emergência
+    $contato_emergencia = $_POST['contato_emergencia'] ?? '';
+    $nome_contato_emergencia = $_POST['nome_contato_emergencia'] ?? '';
 
     $codigo_mala = 'MALA-' . strtoupper(substr(md5(uniqid()), 0, 6));
 
-    $sql = "INSERT INTO inscricoes (nome, cpf, data_nascimento, genero, telefone, email, endereco, medicamento_controlado, restricao_alimentar, alergia, contato_emergencia, nome_contato_emergencia, status_pagamento, codigo_mala) 
-            VALUES ('$nome', '$cpf', '$data_nascimento', '$genero', '$telefone', '$email', '$endereco', '$medicamento_controlado', '$restricao_alimentar', '$alergia', '$contato_emergencia', '$nome_contato_emergencia', 'Pendente', '$codigo_mala')";
+    // Instrução SQL atualizada com todas as novas colunas
+    $sql = "INSERT INTO inscricoes (
+                nome, cpf, data_nascimento, genero, telefone, email, 
+                cep, rua, numero, complemento, bairro, cidade, estado, 
+                medicamento_controlado, restricao_alimentar, descricao_alimentar, 
+                alergia, descricao_alergia, tamanho_camiseta, 
+                contato_emergencia, nome_contato_emergencia, status_pagamento, codigo_mala
+            ) VALUES (
+                '$nome', '$cpf', '$data_nascimento', '$genero', '$telefone', '$email', 
+                '$cep', '$rua', '$numero', '$complemento', '$bairro', '$cidade', '$estado', 
+                '$medicamento_controlado', '$restricao_alimentar', " . ($descricao_alimentar ? "'$descricao_alimentar'" : "NULL") . ", 
+                '$alergia', " . ($descricao_alergia ? "'$descricao_alergia'" : "NULL") . ", '$tamanho_camiseta', 
+                '$contato_emergencia', '$nome_contato_emergencia', 'Pendente', '$codigo_mala'
+            )";
 
     if ($conn->query($sql) === TRUE) {
         $inscricao_id = $conn->insert_id;
         echo "<!-- Passo 1: Inserido no Banco com Sucesso -->";
 
+        // Criação do Cliente no Asaas
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://sandbox.asaas.com/api/v3/customers");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -64,6 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $clienteId = $clienteData['id'];
             echo "<!-- Passo 2: Cliente Criado no Asaas -->";
 
+            // Criação da Cobrança Pix no Asaas
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, "https://sandbox.asaas.com/api/v3/payments");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -89,6 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn->query("UPDATE inscricoes SET asaas_id = '$paymentId' WHERE id = $inscricao_id");
                 echo "<!-- Passo 3: Cobrança Pix Gerada -->";
 
+                // Envio de E-mail com PHPMailer
                 $mail = new PHPMailer(true);
                 try {
                     $mail->isSMTP();
@@ -138,6 +204,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $email_status = "Erro no E-mail: {$mail->ErrorInfo}";
                 }
 
+                // Obtenção do QR Code Pix
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, "https://sandbox.asaas.com/api/v3/payments/{$paymentId}/pixQrCode");
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);

@@ -18,9 +18,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar_classe'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_POST['id_inscricao']))) {
     $termo_busca = isset($_POST['busca']) ? $_POST['busca'] : $_POST['termo_pesquisa_atual'];
     $busca_escape = $conn->real_escape_string($termo_busca);
+    
     $busca_limpa = preg_replace('/[^0-9]/', '', $busca_escape);
 
-    $sql = "SELECT * FROM inscricoes WHERE cpf LIKE '%$busca_limpa%' OR codigo_mala = '$busca_escape' OR nome LIKE '%$busca_escape%' LIMIT 1";
+    $sql = "SELECT * FROM inscricoes WHERE 
+            (REPLACE(REPLACE(cpf, '.', ''), '-', '') LIKE '%$busca_limpa%' AND '$busca_limpa' != '') 
+            OR codigo_mala = '$busca_escape' 
+            OR nome LIKE '%$busca_escape%' 
+            ORDER BY (nome = '$busca_escape') DESC, id DESC LIMIT 1";
+            
     $result = $conn->query($sql);
 
     if ($result && $result->num_rows > 0) {
@@ -32,216 +38,258 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
 ?>
 
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta e Rastreio de Mala - Acampamento</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --success: #16a34a;
-            --success-dark: #15803d;
-            --warning: #d97706;
-            --warning-dark: #b45309;
-            --bg-main: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --border-color: #e2e8f0;
-        }
-
+        /* Layout Base Padronizado com o Dashboard */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
             margin: 0;
-            padding: 30px 20px;
+            padding: 20px;
+            color: #333;
         }
-
         .container {
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 1200px;
+            background: #ffffff;
+            padding: 30px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
-        .card {
-            background: var(--card-bg);
-            padding: 35px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border-color);
-        }
-
         h2 {
-            color: var(--primary);
-            margin-top: 0;
             text-align: center;
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 25px;
+            color: #333;
+            margin-top: 0;
         }
 
-        .form-group {
+        /* Navegação Superior Idêntica ao Dashboard */
+        .top-nav {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
             margin-bottom: 20px;
         }
-
-        label {
-            font-weight: 600;
-            display: block;
-            margin-bottom: 8px;
-            color: #475569;
+        .top-nav a {
+            background-color: #e2e8f0;
+            color: #334155;
+            padding: 8px 14px;
+            border-radius: 4px;
+            text-decoration: none;
             font-size: 14px;
-        }
-
-        input[type="text"], select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 15px;
-            background-color: #f8fafc;
-            transition: all 0.3s;
-        }
-
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
+            font-weight: bold;
             transition: background 0.2s;
         }
+        .top-nav a:hover, .top-nav a.active {
+            background-color: #cbd5e1;
+            color: #0f172a;
+        }
 
+        /* Cartões Estruturais no Padrão do Painel */
+        .section-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-bottom: 25px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .card-header h3 {
+            margin: 0;
+            font-size: 15px;
+            color: #333;
+        }
+
+        /* Formulário e Inputs */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-size: 13px;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #ffffff;
+            outline: none;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: #3b82f6;
+        }
+
+        /* Botões Padronizados */
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
         .btn-primary {
-            background: var(--primary);
-            color: #fff;
+            background: #3b82f6;
+            color: #ffffff;
         }
         .btn-primary:hover {
-            background: var(--primary-dark);
+            background: #2563eb;
         }
-
-        .btn-print {
-            background: var(--success);
-            color: white;
-            margin-top: 15px;
-        }
-        .btn-print:hover {
-            background: var(--success-dark);
-        }
-
         .btn-update {
-            background: var(--warning);
-            color: white;
-            padding: 10px;
-            font-size: 14px;
+            background: #d97706;
+            color: #ffffff;
             margin-top: 10px;
         }
         .btn-update:hover {
-            background: var(--warning-dark);
+            background: #b45309;
         }
-
-        .alert-error {
-            background-color: #fef2f2;
-            color: #dc2626;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 14px;
+        .btn-print {
+            background: #15803d;
+            color: #ffffff;
             margin-top: 15px;
-            border: 1px solid #fecaca;
         }
-
-        .alert-success {
-            background-color: #f0fdf4;
-            color: var(--success);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            border: 1px solid #bbf7d0;
+        .btn-print:hover {
+            background: #166534;
         }
-
-        .resultado {
-            background: #f8fafc;
-            border: 2px dashed #cbd5e1;
-            padding: 25px;
-            border-radius: 10px;
-            text-align: center;
-            margin-top: 25px;
-        }
-
-        .etiqueta-header {
-            font-size: 18px;
+        .btn-toggle {
+            background-color: #e2e8f0;
+            color: #334155;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
             font-weight: bold;
-            color: #0f172a;
-            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        .btn-toggle:hover {
+            background-color: #cbd5e1;
         }
 
-        .codigo-badge {
-            display: inline-block;
-            background: #e2e8f0;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 16px;
-            color: #0f172a;
-            margin: 5px 0 10px 0;
-        }
-
-        .classe-badge {
-            display: inline-block;
+        /* Alertas */
+        .alert-error {
             background: #fee2e2;
-            color: #991b1b;
-            padding: 3px 10px;
-            border-radius: 20px;
+            color: #b91c1c;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .alert-success {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
             font-size: 13px;
             font-weight: bold;
         }
 
+        /* Grid de Resultado (Dados à esquerda + Etiqueta à direita) */
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-list {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-paid { background: #dcfce7; color: #15803d; }
+
+        /* Bloco da Etiqueta */
+        .etiqueta-wrapper {
+            text-align: center;
+        }
+        .etiqueta-bagagem {
+            background: #ffffff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 6px;
+            display: inline-block;
+            width: 100%;
+            max-width: 300px;
+            box-sizing: border-box;
+        }
+        .etiqueta-header {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .codigo-badge {
+            font-family: monospace;
+            background: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 15px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .classe-badge {
+            display: inline-block;
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
         .qr-box {
             margin-top: 15px;
-            background: #fff;
-            padding: 12px;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
             display: inline-block;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            background: #fff;
         }
-
         .qr-box img {
             display: block;
+            margin: 0 auto;
         }
 
-        .info-participante {
-            text-align: left;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
-            line-height: 1.7;
-            color: #475569;
-        }
-
-        .painel-alterar-classe {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            margin-top: 15px;
-            text-align: left;
-        }
-
+        /* Impressão Exclusiva da Etiqueta */
         @media print {
             body {
                 background-color: #fff;
@@ -250,21 +298,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             body * {
                 visibility: hidden;
             }
-            .resultado, .resultado * {
+            .etiqueta-bagagem, .etiqueta-bagagem * {
                 visibility: visible;
             }
-            .resultado {
+            .etiqueta-bagagem {
                 position: absolute;
-                left: 0;
+                left: 50%;
                 top: 0;
+                transform: translateX(-50%);
                 width: 100%;
-                border: none !important;
-                background: #fff !important;
+                max-width: 350px;
+                border: 2px solid #000 !important;
                 margin: 0;
-                padding: 10px;
-                box-shadow: none;
+                padding: 15px;
             }
-            .btn-print, .sem-impressao {
+            .btn-print {
                 display: none !important;
             }
         }
@@ -273,73 +321,145 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
 <body>
 
 <div class="container">
-    <div class="card">
-        <h2>Rastreio de Bagagens</h2>
-        
+
+    <!-- Menu Superior Padronizado -->
+    <div class="top-nav">
+        <a href="home.php">Início</a>
+        <a href="index.php">Nova Inscrição</a>
+        <a href="dashboard.php">Painel Geral</a>
+        <a href="comunicacao.php">Comunicação</a>
+        <a href="buscar_mala.php" class="active">Malas</a>
+        <a href="logout.php" class="logout">Sair</a>
+    </div>
+
+    <h2>Rastreio e Gestão de Bagagens</h2>
+
+    <?php if (!empty($erro)): ?>
+        <div class="alert-error"><?php echo $erro; ?></div>
+    <?php endif; ?>
+
+    <?php if (!empty($sucesso_classe)): ?>
+        <div class="alert-success"><?php echo $sucesso_classe; ?></div>
+    <?php endif; ?>
+
+    <!-- Card de Pesquisa -->
+    <div class="section-card">
+        <div class="card-header">
+            <h3>Localizar Participante</h3>
+            <span style="font-size: 12px; color: #666;">Busca por CPF, Nome ou Código</span>
+        </div>
         <form method="POST" action="">
             <div class="form-group">
-                <label for="busca">Buscar Participante:</label>
-                <input type="text" id="busca" name="busca" required placeholder="Digite o CPF ou Nome do Inscrito" value="<?php echo isset($_POST['busca']) ? htmlspecialchars($_POST['busca']) : (isset($_POST['termo_pesquisa_atual']) ? htmlspecialchars($_POST['termo_pesquisa_atual']) : ''); ?>">
+                <label for="busca">Dados do Participante:</label>
+                <input type="text" id="busca" name="busca" required placeholder="Ex: 000.000.000-00, Nome completo ou MALA-XXXX" value="<?php echo isset($_POST['busca']) ? htmlspecialchars($_POST['busca']) : (isset($_POST['termo_pesquisa_atual']) ? htmlspecialchars($_POST['termo_pesquisa_atual']) : ''); ?>">
             </div>
             <button type="submit" class="btn btn-primary">Pesquisar Inscrição</button>
         </form>
+    </div>
 
-        <?php if (!empty($erro)): ?>
-            <div class="alert-error"><?php echo $erro; ?></div>
-        <?php endif; ?>
-
-        <?php if (!empty($sucesso_classe)): ?>
-            <div class="alert-success" style="margin-top: 20px;"><?php echo $sucesso_classe; ?></div>
-        <?php endif; ?>
-
-        <?php if ($inscricao): ?>
-            <?php 
-                $codigo_mala = $inscricao['codigo_mala'];
-                $classe_atual = $inscricao['classe_mala'];
-                $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=" . urlencode($codigo_mala);
-            ?>
-            <div class="resultado">
-                <!-- Informações do Participante e Painel de Classe agora ficam no topo -->
-                <div class="info-participante">
+    <?php if ($inscricao): ?>
+        <?php 
+            $codigo_mala = $inscricao['codigo_mala'];
+            $classe_atual = $inscricao['classe_mala'];
+            $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=" . urlencode($inscricao['nome']);
+        ?>
+        
+        <div class="result-grid">
+            <!-- Coluna 1: Dados do Inscrito e Controle de Classe -->
+            <div class="section-card">
+                <div class="card-header">
+                    <h3>Dados do Participante e Classificação</h3>
+                </div>
+                
+                <div class="info-list">
                     <strong>Inscrito:</strong> <?php echo htmlspecialchars($inscricao['nome']); ?><br>
                     <strong>CPF:</strong> <?php echo htmlspecialchars($inscricao['cpf']); ?><br>
-                    <span class="sem-impressao"><strong>Status Pagamento:</strong> <?php echo htmlspecialchars($inscricao['status_pagamento']); ?><br></span>
-                    <strong>Telefone:</strong> <?php echo htmlspecialchars($inscricao['telefone']); ?>
+                    <strong>Telefone:</strong> <?php echo htmlspecialchars($inscricao['telefone']); ?><br>
+                    <strong>Status Pagamento:</strong> 
+                    <?php if ($inscricao['status_pagamento'] == 'Pendente'): ?>
+                        <span class="badge badge-pending">Pendente</span>
+                    <?php else: ?>
+                        <span class="badge badge-paid">Pago</span>
+                    <?php endif; ?>
+                </div>
 
-                    <!-- Painel para alterar a classe no dia do embarque -->
-                    <div class="painel-alterar-classe sem-impressao">
-                        <form method="POST" action="">
-                            <input type="hidden" name="id_inscricao" value="<?php echo $inscricao['id']; ?>">
-                            <input type="hidden" name="termo_pesquisa_atual" value="<?php echo htmlspecialchars($_POST['busca'] ?? $_POST['termo_pesquisa_atual']); ?>">
-                            <label for="classe_mala">Alterar Classe da Mala:</label>
-                            <select name="classe_mala" id="classe_mala">
-                                <option value="Classe A" <?php if($classe_atual == 'Classe A') echo 'selected'; ?>>Classe A</option>
-                                <option value="Classe B" <?php if($classe_atual == 'Classe B') echo 'selected'; ?>>Classe B</option>
-                                <option value="Classe C" <?php if($classe_atual == 'Classe C') echo 'selected'; ?>>Classe C</option>
-                                <option value="Classe D" <?php if($classe_atual == 'Classe D') echo 'selected'; ?>>Classe D</option>
-                                <option value="Classe E" <?php if($classe_atual == 'Classe E') echo 'selected'; ?>>Classe E</option>
-                            </select>
-                            <button type="submit" name="atualizar_classe" class="btn btn-update">Atualizar Classe</button>
-                        </form>
+                <form method="POST" action="">
+                    <input type="hidden" name="id_inscricao" value="<?php echo $inscricao['id']; ?>">
+                    <input type="hidden" name="termo_pesquisa_atual" value="<?php echo htmlspecialchars($_POST['busca'] ?? $_POST['termo_pesquisa_atual']); ?>">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="classe_mala">Alterar Classe da Mala:</label>
+                        <select name="classe_mala" id="classe_mala">
+                            <option value="Classe A" <?php if($classe_atual == 'Classe A') echo 'selected'; ?>>Classe A</option>
+                            <option value="Classe B" <?php if($classe_atual == 'Classe B') echo 'selected'; ?>>Classe B</option>
+                            <option value="Classe C" <?php if($classe_atual == 'Classe C') echo 'selected'; ?>>Classe C</option>
+                            <option value="Classe D" <?php if($classe_atual == 'Classe D') echo 'selected'; ?>>Classe D</option>
+                            <option value="Classe E" <?php if($classe_atual == 'Classe E') echo 'selected'; ?>>Classe E</option>
+                        </select>
+                    </div>
+                    <button type="submit" name="atualizar_classe" class="btn btn-update">Atualizar Classe</button>
+                </form>
+            </div>
+
+            <!-- Coluna 2: Etiqueta de Bagagem (Recolhível e Pronta para Impressão) -->
+            <div class="section-card">
+                <div class="card-header">
+                    <h3>Etiqueta de Identificação</h3>
+                    <button type="button" class="btn-toggle" onclick="toggleEtiqueta('etiqueta-box', this)">Ocultar</button>
+                </div>
+
+                <div id="etiqueta-box" class="etiqueta-wrapper">
+                    <div class="etiqueta-bagagem">
+                        <div class="etiqueta-header">Etiqueta de Bagagem</div>
+                        <div style="font-size: 13px; color: #555;">Código: <span class="codigo-badge"><?php echo $codigo_mala; ?></span></div>
+                        <div style="font-size: 13px; color: #555; margin-top: 4px;">Classe: <span class="classe-badge"><?php echo htmlspecialchars($classe_atual); ?></span></div>
+                        
+                        <div class="qr-box">
+                            <img src="<?php echo $qrUrl; ?>" alt="QR Code Mala <?php echo $codigo_mala; ?>">
+                        </div>
+                        
+                        <div>
+                            <button type="button" onclick="window.print()" class="btn btn-print">Imprimir Etiqueta</button>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Bloco do QR Code e Identificação da Mala abaixo dos dados -->
-                <div class="etiqueta-header">Etiqueta de Bagagem</div>
-                <div>Código: <span class="codigo-badge"><?php echo $codigo_mala; ?></span></div>
-                <div>Classe: <span class="classe-badge"><?php echo htmlspecialchars($classe_atual); ?></span></div>
-                
-                <div class="qr-box">
-                    <img src="<?php echo $qrUrl; ?>" alt="QR Code Mala <?php echo $codigo_mala; ?>">
-                </div>
-                
-                <div>
-                    <button onclick="window.print()" class="btn btn-print">Imprimir Etiqueta da Mala</button>
-                </div>
             </div>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php endif; ?>
+
 </div>
+
+<script>
+// Máscara de CPF no campo de busca
+document.getElementById('busca').addEventListener('input', function (e) {
+    let value = e.target.value;
+    let apenasNumeros = value.replace(/\D/g, '');
+    
+    if (apenasNumeros.length <= 11 && !isNaN(value.charAt(0))) {
+        value = apenasNumeros.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = value;
+    }
+});
+
+// Função para exibir/ocultar o card da etiqueta
+function toggleEtiqueta(id, btn) {
+    let el = document.getElementById(id);
+    if (el.style.display === "none") {
+        el.style.display = "block";
+        btn.textContent = "Ocultar";
+    } else {
+        el.style.display = "none";
+        btn.textContent = "Exibir";
+    }
+}
+</script>
 
 </body>
 </html>
+
+<?php 
+if (isset($conn)) {
+    $conn->close(); 
+}
+?>
