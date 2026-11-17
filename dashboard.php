@@ -1,16 +1,35 @@
 <?php
-include("conexao.php");
+require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth.php';
+initialize_auth($conn);
+require_login($conn);
 
-// LÓGICA DE EXCLUSÃO: Se houver uma requisição para excluir um ID
-if (isset($_GET['acao']) && $_GET['acao'] == 'excluir' && isset($_GET['id'])) {
-    $id_excluir = intval($_GET['id']);
-    
-    $sql_excluir = "DELETE FROM inscricoes WHERE id = $id_excluir";
-    if ($conn->query($sql_excluir) === TRUE) {
-        header("Location: dashboard.php");
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'excluir') {
+    verify_csrf();
+    $idExcluir = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+    if ($idExcluir) {
+        $stmt = $conn->prepare('SELECT id FROM inscricoes WHERE id = ?');
+        $stmt->bind_param('i', $idExcluir);
+        $stmt->execute();
+        $exists = $stmt->get_result()->num_rows > 0;
+        $stmt->close();
+        $stmt = $conn->prepare('DELETE FROM inscricoes WHERE id = ?');
+        $stmt->bind_param('i', $idExcluir);
+        $stmt->execute();
+        $stmt->close();
+        if ($exists) {
+            audit_event(
+                $conn,
+                'administrativo',
+                (int) $_SESSION['usuario_id'],
+                (string) $_SESSION['usuario_nome'],
+                'Exclusão de inscrição',
+                'Registro de inscrição ' . $idExcluir . ' excluído.',
+                'sucesso'
+            );
+        }
+        header('Location: dashboard.php');
         exit();
-    } else {
-        $erro_exclusao = "Erro ao excluir o registro: " . $conn->error;
     }
 }
 
@@ -85,38 +104,36 @@ $total_alergias = $conn->query($sql_alergia)->fetch_assoc()['total'];
 $sql_med = "SELECT COUNT(*) as total FROM inscricoes WHERE medicamento_controlado = 'Sim'";
 $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Gestão - Acampamento</title>
+    <title>Painel Geral - Acampamento "No Limite com Cristo"</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
             margin: 0;
             padding: 20px;
+            color: #333;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1000px; /* Padronizado com as demais telas */
             background: #ffffff;
             padding: 30px;
             margin: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        h2 {
-            text-align: center;
-            color: #333;
-        }
 
+        /* Menu superior de navegação padronizado */
         .top-nav {
             display: flex;
             justify-content: flex-end;
+            flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .top-nav a {
             background-color: #e2e8f0;
@@ -132,41 +149,65 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
             background-color: #cbd5e1;
             color: #0f172a;
         }
+        .top-nav a.logout {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        .top-nav a.logout:hover {
+            background-color: #fecaca;
+        }
+
+        /* Cabeçalho centralizado padronizado */
+        .page-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .page-header h1 {
+            font-size: 22px;
+            color: #1e293b;
+            margin: 0 0 6px 0;
+            font-weight: bold;
+        }
+        .page-header p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0;
+        }
 
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            gap: 15px;
             margin-bottom: 25px;
         }
         .metric-card {
-            background: #ffffff;
-            padding: 20px;
+            background: #f8fafc;
+            padding: 15px;
             border-radius: 6px;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
         .metric-card h4 {
-            margin: 0 0 10px 0;
-            font-size: 12px;
-            color: #555;
+            margin: 0 0 8px 0;
+            font-size: 11px;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: bold;
         }
         .metric-card .big-number {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
-            color: #333;
+            color: #1e293b;
         }
 
         .collapsible-card {
             background: #ffffff;
             padding: 20px;
             border-radius: 6px;
-            border: 1px solid #ccc;
+            border: 1px solid #e2e8f0;
             margin-bottom: 20px;
         }
         .card-header {
@@ -176,15 +217,16 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         }
         .card-header h3 {
             margin: 0;
-            font-size: 15px;
-            color: #333;
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: bold;
         }
         
         .btn-toggle {
             background-color: #e2e8f0;
             color: #334155;
             border: none;
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: bold;
@@ -195,7 +237,6 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
             background-color: #cbd5e1;
         }
 
-        /* Definido como 'none' para iniciar oculto ao carregar a página */
         .card-content {
             margin-top: 15px;
             display: none;
@@ -203,12 +244,12 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
 
         .progress-bar-container {
             display: flex;
-            height: 20px;
-            border-radius: 10px;
+            height: 16px;
+            border-radius: 8px;
             overflow: hidden;
             background: #e2e8f0;
             gap: 2px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .progress-fem {
             background: #ec4899;
@@ -235,31 +276,31 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         .shirt-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
+            gap: 8px;
             text-align: center;
         }
         .shirt-box {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
-            padding: 10px;
+            padding: 8px;
             border-radius: 6px;
         }
         .shirt-box span {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             color: #64748b;
             font-weight: bold;
             margin-bottom: 4px;
         }
         .shirt-box strong {
-            font-size: 18px;
-            color: #0f172a;
+            font-size: 16px;
+            color: #1e293b;
         }
 
         .neighborhood-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
         .neighborhood-row {
             display: flex;
@@ -275,16 +316,15 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         }
         .neighborhood-bar-bg {
             background: #e2e8f0;
-            border-radius: 6px;
-            height: 14px;
+            border-radius: 4px;
+            height: 10px;
             width: 100%;
             overflow: hidden;
         }
         .neighborhood-bar-fill {
-            background: #0ea5e9;
+            background: #3b82f6;
             height: 100%;
-            border-radius: 6px;
-            transition: width 0.4s ease;
+            border-radius: 4px;
         }
 
         .action-bar {
@@ -294,27 +334,34 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
             background: #f8fafc;
             padding: 12px 15px;
             border-radius: 6px 6px 0 0;
-            border: 1px solid #ccc;
+            border: 1px solid #e2e8f0;
             border-bottom: none;
             gap: 15px;
             flex-wrap: wrap;
         }
+        .action-bar strong {
+            font-size: 14px;
+            color: #1e293b;
+        }
         .search-box input {
             padding: 8px 12px;
             width: 260px;
-            border: 1px solid #ccc;
+            border: 1px solid #cbd5e1;
             border-radius: 4px;
             font-size: 13px;
             outline: none;
             background: #ffffff;
         }
+        .search-box input:focus {
+            border-color: #3b82f6;
+        }
 
         .card-table {
             background: #ffffff;
             border-radius: 0 0 6px 6px;
-            border: 1px solid #ccc;
+            border: 1px solid #e2e8f0;
             overflow-x: auto;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         table {
             width: 100%;
@@ -325,22 +372,26 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         }
         th {
             background: #f8fafc;
-            color: #555;
+            color: #475569;
             padding: 12px 14px;
             font-weight: bold;
-            border-bottom: 1px solid #ccc;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
         }
         td {
             padding: 12px 14px;
             border-bottom: 1px solid #eee;
-            color: #333;
+            color: #334155;
+            vertical-align: middle;
         }
-        tr:hover { background-color: #f9f9f9; }
+        tr:hover { background-color: #f8fafc; }
 
         .badge {
             display: inline-block;
             padding: 3px 8px;
-            border-radius: 12px;
+            border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
         }
@@ -348,7 +399,7 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         .badge-paid { background: #dcfce7; color: #15803d; }
         .badge-alert { background: #fee2e2; color: #b91c1c; }
         .badge-normal { background: #f1f5f9; color: #64748b; }
-        .codigo-badge { font-family: monospace; background: #e2e8f0; padding: 3px 6px; border-radius: 4px; font-weight: bold; }
+        .codigo-badge { font-family: monospace; background: #e2e8f0; padding: 3px 6px; border-radius: 4px; font-weight: bold; color: #334155; }
         
         .btn-acao {
             padding: 4px 8px;
@@ -363,22 +414,42 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         .btn-editar:hover { background: #2563eb; }
         .btn-excluir { background: #dc2626; color: white; }
         .btn-excluir:hover { background: #b91c1c; }
+        button.btn-acao { border: 0; cursor: pointer; }
+
+        /* Rodapé Institucional */
+        .system-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            margin-top: 25px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
 
-   <div class="top-nav">
+    <!-- Menu Superior Padronizado -->
+    <div class="top-nav">
         <a href="home.php">Início</a>
-        <a href="index.php">Nova Inscrição</a>
-        <a href="dashboard.php"class="active">Painel Geral</a>
+        <a href="formulario.php">Nova Inscrição</a>
+        <a href="dashboard.php" class="active">Painel Geral</a>
         <a href="comunicacao.php">Comunicação</a>
         <a href="buscar_mala.php">Malas</a>
+        <?php if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin'): ?>
+            <a href="admin_usuarios.php">Usuários</a>
+            <a href="logs_auditoria.php">Auditoria</a>
+        <?php endif; ?>
         <a href="logout.php" class="logout">Sair</a>
     </div>
 
-    <h2>Painel de Gestão - Inscrições</h2>
+    <!-- Cabeçalho Centralizado Padronizado -->
+    <div class="page-header">
+        <h1>Painel Geral de Gestão</h1>
+        <p>Acompanhe as métricas, restrições e base de dados completa das inscrições</p>
+    </div>
     
     <?php if (isset($erro_exclusao)): ?>
         <div style="background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 4px; margin-bottom: 20px; text-align: center; font-weight: bold;">
@@ -386,33 +457,33 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         </div>
     <?php endif; ?>
 
-    <div class="metrics-grid" style="margin-top: 25px;">
+    <div class="metrics-grid">
         <div class="metric-card">
             <h4>Total de Inscritos</h4>
             <div class="big-number"><?php echo $total_inscritos; ?></div>
-            <span style="font-size: 11px; color: #666; margin-top: 5px;">Pendentes: <strong style="color: #b45309;"><?php echo $total_pendentes; ?></strong></span>
+            <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Pendentes: <strong style="color: #b45309;"><?php echo $total_pendentes; ?></strong></span>
         </div>
         <div class="metric-card">
             <h4>Uso de Medicamento</h4>
             <div class="big-number" style="color: #7c3aed;"><?php echo $total_med; ?></div>
-            <span style="font-size: 11px; color: #666; margin-top: 5px;">Participantes monitorados</span>
+            <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Participantes monitorados</span>
         </div>
         <div class="metric-card">
             <h4>Alergias Registradas</h4>
             <div class="big-number" style="color: #dc2626;"><?php echo $total_alergias; ?></div>
-            <span style="font-size: 11px; color: #666; margin-top: 5px;">Requer atenção médica</span>
+            <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Requer atenção médica</span>
         </div>
         <div class="metric-card">
             <h4>Restrições Alimentares</h4>
             <div class="big-number" style="color: #d97706;"><?php echo $total_restricoes; ?></div>
-            <span style="font-size: 11px; color: #666; margin-top: 5px;">Avisos enviados à cozinha</span>
+            <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Avisos enviados à cozinha</span>
         </div>
     </div>
 
-    <!-- 1º: Distribuição por Gênero (Oculto por padrão) -->
+    <!-- 1º: Distribuição por Gênero -->
     <div class="collapsible-card">
         <div class="card-header">
-            <h3>Distribuição por Gênero <span style="font-weight: normal; font-size: 12px; color: #666;">(Total: <?php echo $total_inscritos; ?> participantes)</span></h3>
+            <h3>Distribuição por Gênero <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total: <?php echo $total_inscritos; ?> participantes)</span></h3>
             <button class="btn-toggle" onclick="toggleCard('genero-content', this)">Exibir</button>
         </div>
         <div id="genero-content" class="card-content">
@@ -431,10 +502,10 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         </div>
     </div>
 
-    <!-- 2º: Distribuição de Participantes por Bairro - Estado (Oculto por padrão) -->
+    <!-- 2º: Distribuição de Participantes por Bairro - Estado -->
     <div class="collapsible-card">
         <div class="card-header">
-            <h3>Distribuição de Participantes por Bairro - Estado <span style="font-weight: normal; font-size: 12px; color: #666;">(Mapeamento regional)</span></h3>
+            <h3>Distribuição de Participantes por Bairro - Estado <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Mapeamento regional)</span></h3>
             <button class="btn-toggle" onclick="toggleCard('bairros-content', this)">Exibir</button>
         </div>
         <div id="bairros-content" class="card-content">
@@ -461,10 +532,10 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         </div>
     </div>
 
-    <!-- 3º: Controle de Tamanhos de Camisetas (Oculto por padrão) -->
+    <!-- 3º: Controle de Tamanhos de Camisetas -->
     <div class="collapsible-card">
         <div class="card-header">
-            <h3>Controle de Tamanhos de Camisetas <span style="font-weight: normal; font-size: 12px; color: #666;">(Total de pedidos contabilizados)</span></h3>
+            <h3>Controle de Tamanhos de Camisetas <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total de pedidos contabilizados)</span></h3>
             <button class="btn-toggle" onclick="toggleCard('camisas-content', this)">Exibir</button>
         </div>
         <div id="camisas-content" class="card-content">
@@ -542,19 +613,23 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
 
                             <td style="text-align: center;">
                                 <a href="editar.php?id=<?php echo $row['id']; ?>" class="btn-acao btn-editar">Editar</a>
-                                <a href="dashboard.php?acao=excluir&id=<?php echo $row['id']; ?>" class="btn-acao btn-excluir" onclick="return confirm('Tem certeza que deseja excluir o cadastro ID <?php echo $row['id']; ?>?');">Excluir</a>
+                                <form method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir o cadastro ID <?php echo (int) $row['id']; ?>?');">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                    <input type="hidden" name="acao" value="excluir">
+                                    <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
+                                    <button type="submit" class="btn-acao btn-excluir">Excluir</button>
+                                </form>
                             </td>
                         </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="11" style="text-align: center; padding: 30px; color: #777;">Nenhuma inscrição encontrada na base de dados.</td>
+                        <td colspan="11" style="text-align: center; padding: 30px; color: #64748b;">Nenhuma inscrição encontrada na base de dados.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
-
 </div>
 
 <script>
@@ -600,7 +675,6 @@ function filtrarTabela() {
 
 </body>
 </html>
-
 <?php 
 if (isset($conn)) {
     $conn->close(); 

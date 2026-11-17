@@ -2,7 +2,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-include("conexao.php");
+require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth.php';
+initialize_auth($conn);
+require_login($conn);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+}
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -54,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<h3 style='margin-top: 0; color: #721c24;'>Erro de Validação!</h3>";
         echo "<p>O CPF informado é inválido ou incompleto: <strong style='font-family: monospace; font-size: 16px;'>" . htmlspecialchars($cpf) . "</strong></p>";
         echo "<p style='font-size: 13px; color: #555;'>Por favor, certifique-se de preencher todos os 11 dígitos corretamente.</p>";
-        echo "<br><a href='index.php' style='background-color: #721c24; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;'>Voltar e Corrigir</a>";
+        echo "<br><a href='formulario.php' style='background-color: #721c24; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;'>Voltar e Corrigir</a>";
         echo "</div>";
         exit(); // Interrompe o script imediatamente
     }
@@ -104,6 +110,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($conn->query($sql) === TRUE) {
         $inscricao_id = $conn->insert_id;
+        audit_event(
+            $conn,
+            'administrativo',
+            (int) $_SESSION['usuario_id'],
+            (string) $_SESSION['usuario_nome'],
+            'Criação de inscrição',
+            'Nova inscrição criada. Registro ' . $inscricao_id . '.',
+            'sucesso'
+        );
         echo "<!-- Passo 1: Inserido no Banco com Sucesso -->";
 
         // Criação do Cliente no Asaas
@@ -232,7 +247,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
 
                 echo "<div style='margin-top: 25px; text-align: center;'>";
-                echo "<a href='index.php' style='color: #555; text-decoration: underline;'>Fazer nova inscrição</a>";
+                echo "<a href='formulario.php' style='color: #555; text-decoration: underline;'>Fazer nova inscrição</a>";
                 echo "</div>";
                 echo "</div>";
                 

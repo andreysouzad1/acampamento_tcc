@@ -1,5 +1,8 @@
 <?php
-include("conexao.php");
+require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth.php';
+initialize_auth($conn);
+require_login($conn);
 
 // Verifica se o ID foi passado na URL
 if (!isset($_GET['id']) || empty($_GET['id'])) {
@@ -11,6 +14,7 @@ $id = intval($_GET['id']);
 
 // Se o formulário foi submetido para atualizar os dados
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    verify_csrf();
     $nome = $_POST['nome'] ?? '';
     $cpf = $_POST['cpf'] ?? '';
     $data_nascimento = $_POST['data_nascimento'] ?? '';
@@ -62,6 +66,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                   WHERE id = $id";
 
     if ($conn->query($sql_update) === TRUE) {
+        audit_event(
+            $conn,
+            'administrativo',
+            (int) $_SESSION['usuario_id'],
+            (string) $_SESSION['usuario_nome'],
+            'Edição de inscrição',
+            'Dados da inscrição ' . $id . ' alterados.',
+            'sucesso'
+        );
         header("Location: dashboard.php");
         exit();
     } else {
@@ -196,6 +209,7 @@ $inscrito = $result->fetch_assoc();
     <?php endif; ?>
 
     <form action="editar.php?id=<?php echo $inscrito['id']; ?>" method="POST">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
         
         <div class="form-group">
             <label for="nome">Nome *</label>

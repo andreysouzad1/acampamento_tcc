@@ -1,13 +1,8 @@
 <?php
-session_start();
-
-// Se o usuário não estiver logado, redireciona para a tela de login
-if (!isset($_SESSION['logado']) || $_SESSION['logado'] !== true) {
-    header("Location: login.php");
-    exit();
-}
-
-include("conexao.php");
+require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth.php';
+initialize_auth($conn);
+require_login($conn);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -173,10 +168,14 @@ include("conexao.php");
     <!-- Top Nav Integrado -->
     <div class="top-nav">
         <a href="home.php" class="active">Início</a>
-        <a href="index.php">Nova Inscrição</a>
+        <a href="formulario.php">Nova Inscrição</a>
         <a href="dashboard.php">Painel Geral</a>
         <a href="comunicacao.php">Comunicação</a>
         <a href="buscar_mala.php">Malas</a>
+        <?php if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin'): ?>
+            <a href="admin_usuarios.php">Usuários</a>
+            <a href="logs_auditoria.php">Auditoria</a>
+        <?php endif; ?>
         <a href="logout.php" class="logout">Sair</a>
     </div>
 
@@ -197,7 +196,7 @@ include("conexao.php");
                     <div class="nav-card-title">📝 Nova Inscrição</div>
                     <div class="nav-card-desc">Cadastro para novos campistas com validação de CPF e integração Asaas.</div>
                 </div>
-                <a href="index.php" class="btn-primary">Acessar</a>
+                <a href="formulario.php" class="btn-primary">Acessar</a>
             </div>
 
             <!-- Módulo 2 -->
@@ -228,12 +227,6 @@ include("conexao.php");
             </div>
         </div>
     </div>
-
-    <!-- Rodapé -->
-    <div class="system-footer">
-        Trabalho de Conclusão de Curso (TCC) • Organização Paranaense de Ensino Técnico
-    </div>
-
 </div>
 
 </body>

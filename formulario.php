@@ -1,35 +1,39 @@
+<?php
+require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/auth.php';
+initialize_auth($conn);
+require_login($conn);
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscrição - Acampamento</title>
+    <title>Inscrição - Acampamento "No Limite com Cristo"</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
             margin: 0;
             padding: 20px;
+            color: #333;
         }
         .container {
-            max-width: 1200px; /* Padronizado com o form */
+            max-width: 1000px; /* Padronizado com as demais telas */
             background: #ffffff;
             padding: 30px;
             margin: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        h2 {
-            text-align: center;
-            color: #333;
-        }
 
-        /* Menu superior de navegação limpo idêntico ao dashboard */
+        /* Menu superior de navegação padronizado */
         .top-nav {
             display: flex;
             justify-content: flex-end;
+            flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .top-nav a {
             background-color: #e2e8f0;
@@ -44,6 +48,30 @@
         .top-nav a:hover, .top-nav a.active {
             background-color: #cbd5e1;
             color: #0f172a;
+        }
+        .top-nav a.logout {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        .top-nav a.logout:hover {
+            background-color: #fecaca;
+        }
+
+        /* Cabeçalho centralizado padronizado igual às outras telas */
+        .page-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .page-header h1 {
+            font-size: 22px;
+            color: #1e293b;
+            margin: 0 0 6px 0;
+            font-weight: bold;
+        }
+        .page-header p {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0;
         }
 
         .form-group {
@@ -60,7 +88,8 @@
             display: block;
             font-weight: bold;
             margin-bottom: 5px;
-            color: #555;
+            color: #475569;
+            font-size: 13px;
         }
         input[type="text"],
         input[type="email"],
@@ -68,9 +97,16 @@
         select {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #cbd5e1;
             border-radius: 4px;
             box-sizing: border-box;
+            background-color: #f8fafc;
+            color: #334155;
+            font-size: 13px;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color: #3b82f6;
             background-color: #ffffff;
         }
         input:read-only {
@@ -81,6 +117,11 @@
             display: flex;
             gap: 20px;
             margin-top: 5px;
+        }
+        .radio-group label {
+            font-weight: normal;
+            color: #334155;
+            cursor: pointer;
         }
 
         /* Estilo moderno em formato de botões para os tamanhos de camiseta */
@@ -110,36 +151,48 @@
             transition: all 0.2s ease;
         }
         .tamanho-item input[type="checkbox"]:checked + label {
-            background-color: #dc2626;
-            border-color: #b91c1c;
+            background-color: #3b82f6;
+            border-color: #2563eb;
             color: #ffffff;
-            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
         }
         .tamanho-item label:hover {
             border-color: #94a3b8;
             background-color: #f1f5f9;
         }
         .tamanho-item input[type="checkbox"]:checked + label:hover {
-            background-color: #b91c1c;
+            background-color: #2563eb;
         }
 
         .conditional-field {
             margin-top: 10px;
             padding-left: 15px;
-            border-left: 3px solid #dc2626;
+            border-left: 3px solid #3b82f6;
         }
-        button {
+        button[type="submit"] {
             width: 100%;
-            background-color: #28a745;
+            background-color: #3b82f6;
             color: white;
             padding: 12px;
             border: none;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: 14px;
+            font-weight: bold;
             cursor: pointer;
+            transition: background 0.2s;
         }
-        button:hover {
-            background-color: #218838;
+        button[type="submit"]:hover {
+            background-color: #2563eb;
+        }
+
+        /* Rodapé Institucional */
+        .system-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            margin-top: 30px;
         }
     </style>
 </head>
@@ -147,55 +200,67 @@
 
 <div class="container">
 
+    <!-- Menu Superior Padronizado -->
     <div class="top-nav">
         <a href="home.php">Início</a>
-        <a href="index.php" class="active">Nova Inscrição</a>
+        <a href="formulario.php" class="active">Nova Inscrição</a>
         <a href="dashboard.php">Painel Geral</a>
         <a href="comunicacao.php">Comunicação</a>
         <a href="buscar_mala.php">Malas</a>
+        <?php if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin'): ?>
+            <a href="admin_usuarios.php">Usuários</a>
+            <a href="logs_auditoria.php">Auditoria</a>
+        <?php endif; ?>
         <a href="logout.php" class="logout">Sair</a>
     </div>
 
-    <h2>Formulário de Inscrição</h2>
+    <!-- Cabeçalho Centralizado Padronizado -->
+    <div class="page-header">
+        <h1>Formulário de Inscrição</h1>
+        <p>Preencha os dados do campista para registrar uma nova participação</p>
+    </div>
     
     <form id="formInscricao" action="processa.php" method="POST" onsubmit="return confirmarEnvio()">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
         
         <div class="form-group">
-            <label for="nome">Nome *</label>
-            <input type="text" id="nome" name="nome" placeholder="Insira seu nome" required>
+            <label for="nome">Nome Completo *</label>
+            <input type="text" id="nome" name="nome" placeholder="Insira o nome completo" required>
         </div>
 
-        <div class="form-group">
-            <label for="cpf">CPF:</label>
-            <input type="text" id="cpf" name="cpf" maxlength="14" oninput="mascaraCPF(this)" required placeholder="000.000.000-00">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="cpf">CPF *</label>
+                <input type="text" id="cpf" name="cpf" maxlength="14" oninput="mascaraCPF(this)" required placeholder="000.000.000-00">
+            </div>
+            <div class="form-group">
+                <label for="data_nascimento">Data de Nascimento *</label>
+                <input type="date" id="data_nascimento" name="data_nascimento" required>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Gênero *</label>
-            <div class="radio-group">
-                <label><input type="radio" name="genero" value="Mulher" required> Mulher</label>
-                <label><input type="radio" name="genero" value="Homem"> Homem</label>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Gênero *</label>
+                <div class="radio-group" style="padding-top: 8px;">
+                    <label><input type="radio" name="genero" value="Mulher" required> Mulher</label>
+                    <label><input type="radio" name="genero" value="Homem"> Homem</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="telefone">Telefone *</label>
+                <input type="text" id="telefone" name="telefone" maxlength="15" oninput="mascaraTelefone(this)" placeholder="(00) 00000-0000" required>
             </div>
         </div>
 
         <div class="form-group">
-            <label for="data_nascimento">Data de Aniversário *</label>
-            <input type="date" id="data_nascimento" name="data_nascimento" required>
-        </div>
-
-        <div class="form-group">
-            <label for="telefone">Telefone *</label>
-            <input type="text" id="telefone" name="telefone" maxlength="15" oninput="mascaraTelefone(this)" placeholder="(00) 00000-0000" required>
-        </div>
-
-        <div class="form-group">
             <label for="email">E-mail *</label>
-            <input type="email" id="email" name="email" placeholder="Insira seu email" required>
+            <input type="email" id="email" name="email" placeholder="email@exemplo.com" required>
         </div>
 
         <!-- Bloco de Endereço com Busca Automática por CEP -->
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
-        <h3 style="font-size: 16px; color: #444; margin-bottom: 15px;">Endereço</h3>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+        <h3 style="font-size: 15px; color: #1e293b; margin-bottom: 15px; font-weight: bold;">Endereço Residencial</h3>
 
         <div class="form-row">
             <div class="form-group" style="flex: 1;">
@@ -215,7 +280,7 @@
             </div>
             <div class="form-group" style="flex: 1;">
                 <label for="complemento">Complemento</label>
-                <input type="text" id="complemento" name="complemento" placeholder="Apt, Bloco, Casa 2">
+                <input type="text" id="complemento" name="complemento" placeholder="Apt, Bloco, Casa">
             </div>
             <div class="form-group" style="flex: 2;">
                 <label for="bairro">Bairro *</label>
@@ -233,7 +298,9 @@
                 <input type="text" id="estado" name="estado" placeholder="UF" required readonly>
             </div>
         </div>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+        <h3 style="font-size: 15px; color: #1e293b; margin-bottom: 15px; font-weight: bold;">Informações de Saúde e Tamanho</h3>
 
         <div class="form-group">
             <label>Faz uso de medicamento controlado?</label>
@@ -250,7 +317,7 @@
                 <label><input type="radio" name="restricao_alimentar" value="Não" onclick="toggleCampo('restricao', false)"> Não</label>
             </div>
             <div id="grupo_descricao_alimentar" class="conditional-field" style="display: none;">
-                <label for="descricao_alimentar">Qual restrição alimentar?</label>
+                <label for="descricao_alimentar" style="margin-top: 10px;">Qual restrição alimentar?</label>
                 <input type="text" id="descricao_alimentar" name="descricao_alimentar" placeholder="Ex: Intolerância a lactose, vegetariano...">
             </div>
         </div>
@@ -262,7 +329,7 @@
                 <label><input type="radio" name="alergia" value="Não" onclick="toggleCampo('alergia', false)"> Não</label>
             </div>
             <div id="grupo_descricao_alergia" class="conditional-field" style="display: none;">
-                <label for="descricao_alergia">Qual alergia?</label>
+                <label for="descricao_alergia" style="margin-top: 10px;">Qual alergia?</label>
                 <input type="text" id="descricao_alergia" name="descricao_alergia" placeholder="Ex: Alergia a dipirona, camarão...">
             </div>
         </div>
@@ -302,17 +369,21 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="contato_emergencia">Contato de Emergência *</label>
-            <input type="text" id="contato_emergencia" name="contato_emergencia" maxlength="15" oninput="mascaraTelefone(this)" placeholder="(00) 00000-0000" required>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+        <h3 style="font-size: 15px; color: #1e293b; margin-bottom: 15px; font-weight: bold;">Contato de Emergência</h3>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="nome_contato_emergencia">Nome do Contato de Emergência *</label>
+                <input type="text" id="nome_contato_emergencia" name="nome_contato_emergencia" placeholder="Insira o nome do contato" required>
+            </div>
+            <div class="form-group">
+                <label for="contato_emergencia">Telefone de Emergência *</label>
+                <input type="text" id="contato_emergencia" name="contato_emergencia" maxlength="15" oninput="mascaraTelefone(this)" placeholder="(00) 00000-0000" required>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="nome_contato_emergencia">Nome do Contato de Emergência *</label>
-            <input type="text" id="nome_contato_emergencia" name="nome_contato_emergencia" placeholder="Insira o nome do contato" required>
-        </div>
-
-        <button type="submit">Enviar</button>
+        <button type="submit" style="margin-top: 10px;">Finalizar Inscrição</button>
 
     </form>
 </div>
@@ -450,3 +521,8 @@
 
 </body>
 </html>
+<?php 
+if (isset($conn)) {
+    $conn->close(); 
+}
+?>
