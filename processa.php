@@ -18,7 +18,9 @@ require 'PHPMailer/PHPMailer.php';
 require 'PHPMailer/SMTP.php';
 
 $apiKey = getenv('ASAAS_API_KEY');
-
+if (!$apiKey) {
+    exit('Erro: A chave de API do Asaas não está configurada no servidor.');
+}
 $headers = [
     "Content-Type: application/json",
     "access_token: " . $apiKey,
