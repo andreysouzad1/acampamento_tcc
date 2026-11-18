@@ -1,5 +1,8 @@
 FROM php:8.2-apache
 
+# Habilita módulos essenciais do Apache e desativa conflitos de MPM
+RUN a2dismod mpm_event mpm_worker && a2enmod mpm_prefork
+
 # Habilita extensões essenciais do MySQL para o PHP
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
@@ -10,5 +13,3 @@ COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
-
-RUN a2dismod mpm_event mpm_worker && a2enmod mpm_prefork
