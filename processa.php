@@ -17,7 +17,7 @@ require 'PHPMailer/Exception.php';
 require 'PHPMailer/PHPMailer.php';
 require 'PHPMailer/SMTP.php';
 
-$apiKey = 'CREDENTIAL_REMOVED';
+$apiKey = getenv('CREDENTIAL_REMOVED');
 
 $headers = [
     "Content-Type: application/json",
