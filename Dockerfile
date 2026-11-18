@@ -10,3 +10,5 @@ COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
+
+RUN a2dismod mpm_event mpm_worker && a2enmod mpm_prefork
