@@ -17,7 +17,7 @@ require 'PHPMailer/Exception.php';
 require 'PHPMailer/PHPMailer.php';
 require 'PHPMailer/SMTP.php';
 
-$apiKey = getenv('CREDENTIAL_REMOVED');
+$apiKey = getenv('ASAAS_API_KEY');
 
 $headers = [
     "Content-Type: application/json",
