@@ -1,10 +1,9 @@
 <?php
-// Tenta capturar as variáveis do Railway, senão usa o padrão local do XAMPP
-$host = getenv('MYSQLHOST') ?: 'localhost';
-$usuario = getenv('MYSQLUSER') ?: 'root';
-$senha = getenv('MYSQLPASSWORD') ?: '';
-$banco = getenv('MYSQLDATABASE') ?: 'tcc_acampamento';
-$porta = (int) (getenv('MYSQLPORT') ?: 3306);
+$host    = getenv('MYSQLHOST')     ?: ($_ENV['MYSQLHOST']     ?? 'mysql.railway.internal');
+$porta   = (int) (getenv('MYSQLPORT') ?: ($_ENV['MYSQLPORT']   ?? 3306));
+$usuario = getenv('MYSQLUSER')     ?: ($_ENV['MYSQLUSER']     ?? 'root');
+$senha   = getenv('MYSQLPASSWORD') ?: ($_ENV['MYSQLPASSWORD'] ?? 'FOPgwjMKOtdNidpUGmoHxfXikwstxDwG');
+$banco   = getenv('MYSQLDATABASE') ?: ($_ENV['MYSQLDATABASE'] ?? 'railway');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
