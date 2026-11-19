@@ -4,23 +4,33 @@ require_once __DIR__ . '/auth.php';
 initialize_auth($conn);
 require_login($conn);
 
+function h(?string $value): string
+{
+    return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+}
+
 // Se houver uma requisição via AJAX para atualizar o status do checkbox
 if (isset($_POST['id']) && isset($_POST['status'])) {
     verify_csrf();
-    $id = intval($_POST['id']);
-    $status = intval($_POST['status']);
-    
-    $update_sql = "UPDATE inscricoes SET status_envio = $status WHERE id = $id";
-    $conn->query($update_sql);
-    audit_event(
-        $conn,
-        'administrativo',
-        (int) $_SESSION['usuario_id'],
-        (string) $_SESSION['usuario_nome'],
-        'Alteração de status de comunicação',
-        'Status de envio da inscrição ' . $id . ' atualizado para ' . ($status === 1 ? 'enviado' : 'pendente') . '.',
-        'sucesso'
-    );
+    $id = filter_var($_POST['id'], FILTER_VALIDATE_INT);
+    $status = filter_var($_POST['status'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 1]]);
+
+    if ($id !== false && $status !== false) {
+        $stmt = $conn->prepare('UPDATE inscricoes SET status_envio = ? WHERE id = ?');
+        $stmt->bind_param('ii', $status, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        audit_event(
+            $conn,
+            'administrativo',
+            (int) ($_SESSION['usuario_id'] ?? 0),
+            (string) ($_SESSION['usuario_nome'] ?? ''),
+            'Alteração de status de comunicação',
+            'Status de envio da inscrição ' . $id . ' atualizado para ' . ($status === 1 ? 'enviado' : 'pendente') . '.',
+            'sucesso'
+        );
+    }
     exit;
 }
 
@@ -259,7 +269,7 @@ $result = $conn->query($sql);
         <a href="logout.php" class="logout">Sair</a>
     </div>
 
-    <div id="csrf-token" data-token="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>" style="display:none;"></div>
+    <div id="csrf-token" data-token="<?php echo h(csrf_token()); ?>" style="display:none;"></div>
 
     <!-- Cabeçalho Centralizado Padronizado -->
     <div class="page-header">
@@ -289,31 +299,32 @@ $result = $conn->query($sql);
             </thead>
             <tbody>
                 <?php if ($result && $result->num_rows > 0): ?>
-                    <?php while($row = $result->fetch_assoc()): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
                         <?php
-                            $id_participante = $row['id'];
-                            $nome_part = htmlspecialchars($row['nome']);
-                            
-                            $nome_resp = !empty($row['nome_contato_emergencia']) ? htmlspecialchars($row['nome_contato_emergencia']) : 'Responsável';
-                            $tel_original = !empty($row['contato_emergencia']) ? htmlspecialchars($row['contato_emergencia']) : '';
-                            
-                            $tel_limpo = preg_replace('/[^0-9]/', '', $tel_original);
-                            $ja_enviado = $row['status_envio'] == 1;
+                            $id_participante = (int) ($row['id'] ?? 0);
+                            $nome_part_raw = trim((string) ($row['nome'] ?? ''));
+                            $nome_resp_raw = trim((string) ($row['nome_contato_emergencia'] ?? ''));
+                            $nome_resp_display = $nome_resp_raw !== '' ? $nome_resp_raw : 'Responsável';
 
-                            $mensagem_unica = "Olá, {$nome_resp}! Aqui é da equipe do Acampamento No Limite com Cristo. Entramos em contato referente ao/à participante *{$nome_part}*.";
-                            $link_wpp = "https://wa.me/55{$tel_limpo}?text=" . urlencode($mensagem_unica);
+                            $tel_original_raw = trim((string) ($row['contato_emergencia'] ?? ''));
+                            $tel_limpo = preg_replace('/[^0-9]/', '', $tel_original_raw) ?? '';
+                            $ja_enviado = ((int) ($row['status_envio'] ?? 0)) === 1;
+
+                            $mensagem_unica = "Olá, {$nome_resp_display}! Aqui é da equipe do Acampamento No Limite com Cristo. Entramos em contato referente ao/à participante *{$nome_part_raw}*.";
+                            $link_wpp = 'https://wa.me/55' . $tel_limpo . '?' . http_build_query(['text' => $mensagem_unica], '', '&', PHP_QUERY_RFC3986);
+                            $texto_busca = mb_strtolower($nome_part_raw . ' ' . $nome_resp_display, 'UTF-8');
                         ?>
 
-                        <tr class="<?php echo $ja_enviado ? 'enviado' : ''; ?>" data-busca="<?php echo strtolower($nome_part . ' ' . $nome_resp); ?>">
+                        <tr class="<?php echo $ja_enviado ? 'enviado' : ''; ?>" data-busca="<?php echo h($texto_busca); ?>">
                             <td style="text-align: center;">
                                 <input type="checkbox" <?php echo $ja_enviado ? 'checked' : ''; ?> onchange="atualizarStatus(this, <?php echo $id_participante; ?>)">
                             </td>
-                            <td><strong><?php echo $nome_part; ?></strong></td>
-                            <td><?php echo $nome_resp; ?></td>
-                            <td><?php echo $tel_original ?: '<span class="no-phone">Não informado</span>'; ?></td>
+                            <td><strong><?php echo h($nome_part_raw); ?></strong></td>
+                            <td><?php echo h($nome_resp_display); ?></td>
+                            <td><?php echo $tel_original_raw !== '' ? h($tel_original_raw) : '<span class="no-phone">Não informado</span>'; ?></td>
                             <td style="text-align: right;">
-                                <?php if (!empty($tel_limpo)): ?>
-                                    <a href="<?php echo $link_wpp; ?>" target="_blank" class="btn-whatsapp" onclick="marcarAutomatico(this, <?php echo $id_participante; ?>)">
+                                <?php if ($tel_limpo !== ''): ?>
+                                    <a href="<?php echo h($link_wpp); ?>" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" onclick="marcarAutomatico(this, <?php echo $id_participante; ?>)">
                                         💬 Enviar WhatsApp
                                     </a>
                                 <?php else: ?>
@@ -367,7 +378,7 @@ function filtrarTabela() {
 
     linhas.forEach(linha => {
         const dados = linha.getAttribute("data-busca");
-        if (dados) {
+        if (dados !== null) {
             linha.style.display = dados.includes(termo) ? "" : "none";
         }
     });
