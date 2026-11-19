@@ -4,6 +4,16 @@ require_once __DIR__ . '/auth.php';
 initialize_auth($conn);
 require_login($conn);
 
+function h(?string $value): string
+{
+    return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+}
+
+function t(?string $value): string
+{
+    return trim((string) ($value ?? ''));
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'excluir') {
     verify_csrf();
     $idExcluir = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
@@ -42,23 +52,26 @@ $total_inscritos = $result->num_rows;
 
 // Pagamentos Pendentes
 $sql_pendentes = "SELECT COUNT(*) as total FROM inscricoes WHERE status_pagamento = 'Pendente'";
-$total_pendentes = $conn->query($sql_pendentes)->fetch_assoc()['total'];
+$total_pendentes = (int) ($conn->query($sql_pendentes)->fetch_assoc()['total'] ?? 0);
 
 // Estatísticas por Gênero (Compatível com Homem/Mulher)
 $sql_genero = "SELECT genero, COUNT(*) as total FROM inscricoes GROUP BY genero";
 $res_genero = $conn->query($sql_genero);
 $totais_genero = [];
-while($g = $res_genero->fetch_assoc()) {
-    $totais_genero[trim($g['genero'])] = $g['total'];
+while ($g = $res_genero->fetch_assoc()) {
+    $chaveGenero = t($g['genero'] ?? '');
+    if ($chaveGenero !== '') {
+        $totais_genero[$chaveGenero] = (int) ($g['total'] ?? 0);
+    }
 }
 
-$fem = (isset($totais_genero['Feminino']) ? $totais_genero['Feminino'] : 0) + 
-       (isset($totais_genero['Mulher']) ? $totais_genero['Mulher'] : 0) +
-       (isset($totais_genero['mulher']) ? $totais_genero['mulher'] : 0);
+$fem = ($totais_genero['Feminino'] ?? 0)
+     + ($totais_genero['Mulher'] ?? 0)
+     + ($totais_genero['mulher'] ?? 0);
 
-$masc = (isset($totais_genero['Masculino']) ? $totais_genero['Masculino'] : 0) + 
-        (isset($totais_genero['Homem']) ? $totais_genero['Homem'] : 0) +
-        (isset($totais_genero['homem']) ? $totais_genero['homem'] : 0);
+$masc = ($totais_genero['Masculino'] ?? 0)
+      + ($totais_genero['Homem'] ?? 0)
+      + ($totais_genero['homem'] ?? 0);
 
 $perc_fem = $total_inscritos > 0 ? round(($fem / $total_inscritos) * 100) : 0;
 $perc_masc = $total_inscritos > 0 ? round(($masc / $total_inscritos) * 100) : 0;
@@ -67,14 +80,17 @@ $perc_masc = $total_inscritos > 0 ? round(($masc / $total_inscritos) * 100) : 0;
 $sql_bairros = "SELECT bairro, estado, COUNT(*) as total FROM inscricoes GROUP BY bairro, estado ORDER BY total DESC";
 $res_bairros = $conn->query($sql_bairros);
 $lista_bairros = [];
-$maior_bairro_total = 1; 
+$maior_bairro_total = 1;
 
-while($b = $res_bairros->fetch_assoc()) {
-    $nome_bairro = !empty(trim($b['bairro'])) ? trim($b['bairro']) : 'Não Informado';
-    $nome_estado = !empty(trim($b['estado'])) ? trim($b['estado']) : 'PR';
-    
-    $chave_localizacao = $nome_bairro . " - " . $nome_estado;
-    $lista_bairros[$chave_localizacao] = intval($b['total']);
+while ($b = $res_bairros->fetch_assoc()) {
+    $bairroLimpo = t($b['bairro'] ?? '');
+    $estadoLimpo = t($b['estado'] ?? '');
+
+    $nome_bairro = $bairroLimpo !== '' ? $bairroLimpo : 'Não Informado';
+    $nome_estado = $estadoLimpo !== '' ? $estadoLimpo : 'PR';
+
+    $chave_localizacao = $nome_bairro . ' - ' . $nome_estado;
+    $lista_bairros[$chave_localizacao] = (int) ($b['total'] ?? 0);
 }
 
 if (!empty($lista_bairros)) {
@@ -85,24 +101,24 @@ if (!empty($lista_bairros)) {
 $sql_camisas = "SELECT tamanho_camiseta, COUNT(*) as total FROM inscricoes GROUP BY tamanho_camiseta";
 $res_camisas = $conn->query($sql_camisas);
 $totais_camisas = ['P' => 0, 'M' => 0, 'G' => 0, 'GG' => 0, 'G1' => 0, 'G2' => 0, 'G3' => 0];
-while($c = $res_camisas->fetch_assoc()) {
-    $tamanho = trim($c['tamanho_camiseta']);
-    if (isset($totais_camisas[$tamanho])) {
-        $totais_camisas[$tamanho] = $c['total'];
+while ($c = $res_camisas->fetch_assoc()) {
+    $tamanho = t($c['tamanho_camiseta'] ?? '');
+    if ($tamanho !== '' && isset($totais_camisas[$tamanho])) {
+        $totais_camisas[$tamanho] = (int) ($c['total'] ?? 0);
     }
 }
 
 // Participantes com Restrições Alimentares
 $sql_restricao = "SELECT COUNT(*) as total FROM inscricoes WHERE restricao_alimentar = 'Sim'";
-$total_restricoes = $conn->query($sql_restricao)->fetch_assoc()['total'];
+$total_restricoes = (int) ($conn->query($sql_restricao)->fetch_assoc()['total'] ?? 0);
 
 // Participantes com Alergias
 $sql_alergia = "SELECT COUNT(*) as total FROM inscricoes WHERE alergia = 'Sim'";
-$total_alergias = $conn->query($sql_alergia)->fetch_assoc()['total'];
+$total_alergias = (int) ($conn->query($sql_alergia)->fetch_assoc()['total'] ?? 0);
 
 // Participantes com Medicamento Controlado
 $sql_med = "SELECT COUNT(*) as total FROM inscricoes WHERE medicamento_controlado = 'Sim'";
-$total_med = $conn->query($sql_med)->fetch_assoc()['total'];
+$total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -119,7 +135,7 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
             color: #333;
         }
         .container {
-            max-width: 1000px; /* Padronizado com as demais telas */
+            max-width: 1000px;
             background: #ffffff;
             padding: 30px;
             margin: auto;
@@ -453,29 +469,29 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
     
     <?php if (isset($erro_exclusao)): ?>
         <div style="background: #fee2e2; color: #b91c1c; padding: 10px; border-radius: 4px; margin-bottom: 20px; text-align: center; font-weight: bold;">
-            <?php echo $erro_exclusao; ?>
+            <?php echo h($erro_exclusao); ?>
         </div>
     <?php endif; ?>
 
     <div class="metrics-grid">
         <div class="metric-card">
             <h4>Total de Inscritos</h4>
-            <div class="big-number"><?php echo $total_inscritos; ?></div>
-            <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Pendentes: <strong style="color: #b45309;"><?php echo $total_pendentes; ?></strong></span>
+            <div class="big-number"><?php echo (int) $total_inscritos; ?></div>
+            <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Pendentes: <strong style="color: #b45309;"><?php echo (int) $total_pendentes; ?></strong></span>
         </div>
         <div class="metric-card">
             <h4>Uso de Medicamento</h4>
-            <div class="big-number" style="color: #7c3aed;"><?php echo $total_med; ?></div>
+            <div class="big-number" style="color: #7c3aed;"><?php echo (int) $total_med; ?></div>
             <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Participantes monitorados</span>
         </div>
         <div class="metric-card">
             <h4>Alergias Registradas</h4>
-            <div class="big-number" style="color: #dc2626;"><?php echo $total_alergias; ?></div>
+            <div class="big-number" style="color: #dc2626;"><?php echo (int) $total_alergias; ?></div>
             <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Requer atenção médica</span>
         </div>
         <div class="metric-card">
             <h4>Restrições Alimentares</h4>
-            <div class="big-number" style="color: #d97706;"><?php echo $total_restricoes; ?></div>
+            <div class="big-number" style="color: #d97706;"><?php echo (int) $total_restricoes; ?></div>
             <span style="font-size: 11px; color: #64748b; margin-top: 5px;">Avisos enviados à cozinha</span>
         </div>
     </div>
@@ -483,20 +499,20 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
     <!-- 1º: Distribuição por Gênero -->
     <div class="collapsible-card">
         <div class="card-header">
-            <h3>Distribuição por Gênero <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total: <?php echo $total_inscritos; ?> participantes)</span></h3>
+            <h3>Distribuição por Gênero <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total: <?php echo (int) $total_inscritos; ?> participantes)</span></h3>
             <button class="btn-toggle" onclick="toggleCard('genero-content', this)">Exibir</button>
         </div>
         <div id="genero-content" class="card-content">
             <div class="progress-bar-container" style="margin-top: 10px;">
-                <div class="progress-fem" style="width: <?php echo $perc_fem; ?>%;" title="Mulheres: <?php echo $fem; ?> (<?php echo $perc_fem; ?>%)"></div>
-                <div class="progress-masc" style="width: <?php echo $perc_masc; ?>%;" title="Homens: <?php echo $masc; ?> (<?php echo $perc_masc; ?>%)"></div>
+                <div class="progress-fem" style="width: <?php echo (int) $perc_fem; ?>%;" title="Mulheres: <?php echo (int) $fem; ?> (<?php echo (int) $perc_fem; ?>%)"></div>
+                <div class="progress-masc" style="width: <?php echo (int) $perc_masc; ?>%;" title="Homens: <?php echo (int) $masc; ?> (<?php echo (int) $perc_masc; ?>%)"></div>
             </div>
             <div class="gender-legend">
                 <div class="legend-item" style="color: #db2777;">
-                    <span style="background: #ec4899;"></span> Mulheres: <strong><?php echo $fem; ?></strong> (<?php echo $perc_fem; ?>%)
+                    <span style="background: #ec4899;"></span> Mulheres: <strong><?php echo (int) $fem; ?></strong> (<?php echo (int) $perc_fem; ?>%)
                 </div>
                 <div class="legend-item" style="color: #2563eb;">
-                    <span style="background: #3b82f6;"></span> Homens: <strong><?php echo $masc; ?></strong> (<?php echo $perc_masc; ?>%)
+                    <span style="background: #3b82f6;"></span> Homens: <strong><?php echo (int) $masc; ?></strong> (<?php echo (int) $perc_masc; ?>%)
                 </div>
             </div>
         </div>
@@ -511,17 +527,17 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         <div id="bairros-content" class="card-content">
             <div class="neighborhood-list" style="margin-top: 10px;">
                 <?php if (!empty($lista_bairros)): ?>
-                    <?php foreach($lista_bairros as $localizacao => $qtd): ?>
-                        <?php 
-                            $largura_barra = round(($qtd / $maior_bairro_total) * 100);
+                    <?php foreach ($lista_bairros as $localizacao => $qtd): ?>
+                        <?php
+                            $largura_barra = $maior_bairro_total > 0 ? round(($qtd / $maior_bairro_total) * 100) : 0;
                         ?>
                         <div class="neighborhood-row">
                             <div class="neighborhood-info">
-                                <span><?php echo htmlspecialchars($localizacao); ?></span>
-                                <span><?php echo $qtd; ?> participante(s)</span>
+                                <span><?php echo h($localizacao); ?></span>
+                                <span><?php echo (int) $qtd; ?> participante(s)</span>
                             </div>
                             <div class="neighborhood-bar-bg">
-                                <div class="neighborhood-bar-fill" style="width: <?php echo $largura_barra; ?>%;"></div>
+                                <div class="neighborhood-bar-fill" style="width: <?php echo (int) $largura_barra; ?>%;"></div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -540,10 +556,10 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
         </div>
         <div id="camisas-content" class="card-content">
             <div class="shirt-grid" style="margin-top: 10px;">
-                <?php foreach($totais_camisas as $tamanho => $quantidade): ?>
+                <?php foreach ($totais_camisas as $tamanho => $quantidade): ?>
                     <div class="shirt-box">
-                        <span><?php echo $tamanho; ?></span>
-                        <strong><?php echo $quantidade; ?></strong>
+                        <span><?php echo h($tamanho); ?></span>
+                        <strong><?php echo (int) $quantidade; ?></strong>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -576,35 +592,35 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
             </thead>
             <tbody>
                 <?php if ($total_inscritos > 0): ?>
-                    <?php while($row = $result->fetch_assoc()): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
                         <tr>
-                            <td><?php echo $row['id']; ?></td>
-                            <td><strong><?php echo htmlspecialchars($row['nome']); ?></strong></td>
-                            <td><?php echo htmlspecialchars($row['cpf']); ?></td>
-                            <td><?php echo htmlspecialchars($row['genero']); ?></td>
-                            <td><span class="codigo-badge"><?php echo htmlspecialchars($row['codigo_mala']); ?></span></td>
-                            <td><strong><?php echo htmlspecialchars($row['tamanho_camiseta'] ?? '-'); ?></strong></td>
+                            <td><?php echo (int) ($row['id'] ?? 0); ?></td>
+                            <td><strong><?php echo h($row['nome'] ?? ''); ?></strong></td>
+                            <td><?php echo h($row['cpf'] ?? ''); ?></td>
+                            <td><?php echo h($row['genero'] ?? ''); ?></td>
+                            <td><span class="codigo-badge"><?php echo h($row['codigo_mala'] ?? ''); ?></span></td>
+                            <td><strong><?php echo h(($row['tamanho_camiseta'] ?? '') !== '' ? $row['tamanho_camiseta'] : '-'); ?></strong></td>
                             
                             <td>
-                                <?php if (!empty($row['restricao_alimentar']) && $row['restricao_alimentar'] == 'Sim'): ?>
-                                    <span class="badge badge-alert">Sim: <?php echo htmlspecialchars($row['descricao_alimentar']); ?></span>
+                                <?php if (($row['restricao_alimentar'] ?? '') === 'Sim'): ?>
+                                    <span class="badge badge-alert">Sim: <?php echo h($row['descricao_alimentar'] ?? ''); ?></span>
                                 <?php else: ?>
                                     <span class="badge badge-normal">Não</span>
                                 <?php endif; ?>
                             </td>
 
                             <td>
-                                <?php if (!empty($row['alergia']) && $row['alergia'] == 'Sim'): ?>
-                                    <span class="badge badge-alert">Sim: <?php echo htmlspecialchars($row['descricao_alergia']); ?></span>
+                                <?php if (($row['alergia'] ?? '') === 'Sim'): ?>
+                                    <span class="badge badge-alert">Sim: <?php echo h($row['descricao_alergia'] ?? ''); ?></span>
                                 <?php else: ?>
                                     <span class="badge badge-normal">Não</span>
                                 <?php endif; ?>
                             </td>
 
-                            <td><?php echo !empty($row['medicamento_controlado']) ? htmlspecialchars($row['medicamento_controlado']) : 'Não'; ?></td>
+                            <td><?php echo h(($row['medicamento_controlado'] ?? '') !== '' ? $row['medicamento_controlado'] : 'Não'); ?></td>
 
                             <td>
-                                <?php if ($row['status_pagamento'] == 'Pendente'): ?>
+                                <?php if (($row['status_pagamento'] ?? '') === 'Pendente'): ?>
                                     <span class="badge badge-pending">Pendente</span>
                                 <?php else: ?>
                                     <span class="badge badge-paid">Pago</span>
@@ -612,11 +628,11 @@ $total_med = $conn->query($sql_med)->fetch_assoc()['total'];
                             </td>
 
                             <td style="text-align: center;">
-                                <a href="editar.php?id=<?php echo $row['id']; ?>" class="btn-acao btn-editar">Editar</a>
-                                <form method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir o cadastro ID <?php echo (int) $row['id']; ?>?');">
-                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
+                                <a href="editar.php?id=<?php echo (int) ($row['id'] ?? 0); ?>" class="btn-acao btn-editar">Editar</a>
+                                <form method="post" style="display:inline" onsubmit="return confirm('Tem certeza que deseja excluir o cadastro ID <?php echo (int) ($row['id'] ?? 0); ?>?');">
+                                    <input type="hidden" name="csrf_token" value="<?php echo h(csrf_token()); ?>">
                                     <input type="hidden" name="acao" value="excluir">
-                                    <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
+                                    <input type="hidden" name="id" value="<?php echo (int) ($row['id'] ?? 0); ?>">
                                     <button type="submit" class="btn-acao btn-excluir">Excluir</button>
                                 </form>
                             </td>
