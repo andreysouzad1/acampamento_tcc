@@ -47,7 +47,7 @@ if ($identificador === '' || $senha === '') {
 }
 
 $stmt = $conn->prepare(
-    'SELECT id, nome, email, senha, setor FROM usuarios WHERE email = ? OR usuario = ? LIMIT 1'
+    'SELECT id, usuario, email, senha, setor FROM usuarios WHERE email = ? OR usuario = ? LIMIT 1'
 );
 if ($stmt === false) {
     http_response_code(500);
@@ -70,7 +70,7 @@ if ($usuario) {
     if ($hashArmazenado !== '' && password_verify($senha, $hashArmazenado)) {
         $senhaValida = true;
     } elseif ($hashArmazenado !== '' && hash_equals($hashArmazenado, $senha)) {
-        // Fallback caso algum usuário de teste ainda tenha senha simples
+        // Fallback caso algum utilizador de teste ainda tenha palavra-passe simples
         $senhaValida = true;
     }
 }
@@ -85,6 +85,7 @@ if (!$usuario || !$senhaValida) {
 }
 
 $setor = strtolower(trim((string) ($usuario['setor'] ?? 'admin')));
+$nomeExibicao = (string) ($usuario['usuario'] ?? $usuario['email'] ?? '');
 
 $secret = getenv('FORM_DATA_ENCRYPTION_KEY')
     ?: ($_ENV['FORM_DATA_ENCRYPTION_KEY'] ?? '')
@@ -103,8 +104,8 @@ echo json_encode([
     'token'   => $token,
     'usuario' => [
         'id'    => (int) $usuario['id'],
-        'nome'  => (string) $usuario['nome'],
-        'email' => (string) $usuario['email'],
+        'nome'  => $nomeExibicao,
+        'email' => (string) ($usuario['email'] ?? ''),
         'setor' => $setor,
     ],
 ], JSON_UNESCAPED_UNICODE);
