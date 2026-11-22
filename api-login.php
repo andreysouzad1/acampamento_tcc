@@ -23,20 +23,32 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once __DIR__ . '/conexao.php';
 
-$input = json_decode((string) file_get_contents('php://input'), true);
-$email = trim((string) ($input['email'] ?? ''));
+$rawInput = (string) file_get_contents('php://input');
+$input = json_decode($rawInput, true);
+if (!is_array($input)) {
+    $input = $_POST;
+}
+
+$identificador = trim((string) (
+    $input['usuario']
+    ?? $input['email']
+    ?? $input['login']
+    ?? ''
+));
 $senha = (string) ($input['senha'] ?? '');
 
-if ($email === '' || $senha === '') {
+if ($identificador === '' || $senha === '') {
     http_response_code(400);
     echo json_encode([
         'sucesso' => false,
-        'mensagem' => 'Informe e-mail e senha.',
+        'mensagem' => 'Informe usuário/e-mail e senha.',
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-$stmt = $conn->prepare('SELECT id, nome, email, senha, setor FROM usuarios WHERE email = ? LIMIT 1');
+$stmt = $conn->prepare(
+    'SELECT id, nome, email, senha, setor FROM usuarios WHERE email = ? OR usuario = ? LIMIT 1'
+);
 if ($stmt === false) {
     http_response_code(500);
     echo json_encode([
@@ -46,7 +58,7 @@ if ($stmt === false) {
     exit;
 }
 
-$stmt->bind_param('s', $email);
+$stmt->bind_param('ss', $identificador, $identificador);
 $stmt->execute();
 $result = $stmt->get_result();
 $usuario = $result ? $result->fetch_assoc() : null;
@@ -58,7 +70,7 @@ if ($usuario) {
     if ($hashArmazenado !== '' && password_verify($senha, $hashArmazenado)) {
         $senhaValida = true;
     } elseif ($hashArmazenado !== '' && hash_equals($hashArmazenado, $senha)) {
-        // Fallback caso algum utilizador de teste ainda tenha palavra-passe simples
+        // Fallback caso algum usuário de teste ainda tenha senha simples
         $senhaValida = true;
     }
 }
@@ -67,7 +79,7 @@ if (!$usuario || !$senhaValida) {
     http_response_code(401);
     echo json_encode([
         'sucesso' => false,
-        'mensagem' => 'E-mail ou senha inválidos.',
+        'mensagem' => 'Usuário/e-mail ou senha inválidos.',
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
