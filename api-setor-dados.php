@@ -85,6 +85,8 @@ switch ($setor) {
         break;
 
     case 'bagagens':
+    case 'equipedelogistica_':
+    case 'logistica':
         $sql = "SELECT id, nome, codigo_mala, status_envio, tamanho_camiseta
                 FROM inscricoes
                 ORDER BY nome ASC";
