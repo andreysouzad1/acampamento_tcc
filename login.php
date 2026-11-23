@@ -4,7 +4,7 @@ require_once __DIR__ . '/auth.php';
 initialize_auth($conn);
 
 if (!empty($_SESSION['logado'])) {
-    header('Location: home.php');
+    header('Location: ' . default_user_page($conn, (int) $_SESSION['usuario_id'], (string) $_SESSION['usuario_perfil']));
     exit();
 }
 
@@ -65,7 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
         
         audit_event($conn, 'login', (int) $user['id'], $user['usuario'], 'Início de sessão', 'Autenticação realizada.', 'sucesso');
-        header('Location: ' . ((int) $user['exige_troca_senha'] === 1 ? 'trocar_senha.php' : 'home.php'));
+        $destino = (int) $user['exige_troca_senha'] === 1
+            ? 'trocar_senha.php'
+            : default_user_page($conn, (int) $user['id'], (string) $user['perfil']);
+        header('Location: ' . $destino);
         exit();
     }
 
@@ -277,6 +280,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button class="submit" type="submit">Entrar</button>
         </form>
+        <p style="margin:15px 0 0; text-align:center; font-size:12px;">
+            <a href="redefinir_senha.php" style="color:#2563eb;">Esqueci minha senha / Redefinir senha</a>
+        </p>
         <div class="notice"><span aria-hidden="true">●</span><span><strong>Privacidade e segurança.</strong> Acesso restrito e monitorado conforme as diretrizes do sistema.</span></div>
     </section>
 </main>

@@ -81,6 +81,45 @@ function initialize_auth(mysqli $conn): void
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     );
 
+    $permissionTableExists = (int) $conn->query(
+        "SELECT COUNT(*) AS total FROM information_schema.tables
+         WHERE table_schema = DATABASE() AND table_name = 'permissoes_paginas'"
+    )->fetch_assoc()['total'] > 0;
+    $conn->query(
+        "CREATE TABLE IF NOT EXISTS permissoes_paginas (
+            usuario_id INT NOT NULL,
+            pagina VARCHAR(50) NOT NULL,
+            PRIMARY KEY (usuario_id, pagina),
+            CONSTRAINT fk_permissoes_paginas_usuario
+                FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+    if (!$permissionTableExists) {
+        $permissionSeed = $conn->prepare(
+            "INSERT IGNORE INTO permissoes_paginas (usuario_id, pagina)
+             SELECT id, ? FROM usuarios WHERE perfil <> 'SuperAdmin'"
+        );
+        foreach (array_keys(accessible_pages()) as $page) {
+            $permissionSeed->bind_param('s', $page);
+            $permissionSeed->execute();
+        }
+        $permissionSeed->close();
+    }
+
+    $conn->query(
+        "CREATE TABLE IF NOT EXISTS tokens_redefinicao_senha (
+            id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT NOT NULL,
+            token_hash CHAR(64) NOT NULL,
+            expira_em DATETIME NOT NULL,
+            criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_tokens_redefinicao_hash (token_hash),
+            KEY idx_tokens_redefinicao_usuario_data (usuario_id, criado_em),
+            CONSTRAINT fk_tokens_redefinicao_usuario
+                FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+
     $triggers = [
         'logs_auditoria_immutable_update' => 'UPDATE',
         'logs_auditoria_immutable_delete' => 'DELETE'
@@ -233,6 +272,32 @@ function require_login(mysqli $conn): void
         header('Location: trocar_senha.php');
         exit();
     }
+
+    if ($user['perfil'] !== 'SuperAdmin') {
+        $pagePermissions = [
+            'home.php' => 'home',
+            'formulario.php' => 'formulario',
+            'processa.php' => 'formulario',
+            'dashboard.php' => 'dashboard',
+            'editar.php' => 'dashboard',
+            'comunicacao.php' => 'comunicacao',
+            'buscar_mala.php' => 'buscar_mala'
+        ];
+        if (isset($pagePermissions[$currentPage])) {
+            $page = $pagePermissions[$currentPage];
+            $permissionStmt = $conn->prepare(
+                'SELECT 1 FROM permissoes_paginas WHERE usuario_id = ? AND pagina = ? LIMIT 1'
+            );
+            $permissionStmt->bind_param('is', $userId, $page);
+            $permissionStmt->execute();
+            $allowed = $permissionStmt->get_result()->num_rows === 1;
+            $permissionStmt->close();
+            if (!$allowed) {
+                http_response_code(403);
+                exit('Acesso não autorizado para esta página. <a href="logout.php">Sair</a>');
+            }
+        }
+    }
 }
 
 function require_superadmin(mysqli $conn): void
@@ -243,6 +308,41 @@ function require_superadmin(mysqli $conn): void
         header('Location: home.php?acesso=negado');
         exit();
     }
+}
+
+function accessible_pages(): array
+{
+    return [
+        'home' => 'Início',
+        'formulario' => 'Nova Inscrição',
+        'dashboard' => 'Painel Geral',
+        'comunicacao' => 'Comunicação',
+        'buscar_mala' => 'Malas'
+    ];
+}
+
+function default_user_page(mysqli $conn, int $userId, string $profile): string
+{
+    if ($profile === 'SuperAdmin') {
+        return 'home.php';
+    }
+
+    $stmt = $conn->prepare('SELECT pagina FROM permissoes_paginas WHERE usuario_id = ?');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $allowed = [];
+    while ($row = $result->fetch_assoc()) {
+        $allowed[$row['pagina']] = true;
+    }
+    $stmt->close();
+
+    foreach (accessible_pages() as $page => $label) {
+        if (isset($allowed[$page])) {
+            return $page . '.php';
+        }
+    }
+    return 'home.php';
 }
 
 function escape_html(string $value): string

@@ -27,7 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'Senha alterada pelo próprio usuário.',
             'sucesso'
         );
-        header('Location: home.php?senha=alterada');
+        $destino = default_user_page($conn, $userId, (string) $_SESSION['usuario_perfil']);
+        header('Location: ' . $destino . '?senha=alterada');
         exit();
     }
 }
