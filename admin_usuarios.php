@@ -147,254 +147,263 @@ $permissionRows = $conn->query('SELECT usuario_id, pagina FROM permissoes_pagina
 while ($permission = $permissionRows->fetch_assoc()) {
     $permissoesPorUsuario[(int) $permission['usuario_id']][] = $permission['pagina'];
 }
-
-$paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciar Usuários - No Limite com Cristo</title>
+    <title>Gerenciar Usuários - Acampamento "No Limite com Cristo"</title>
     <style>
-        * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f5f7;
-            color: #111827;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
             margin: 0;
-            padding: 28px 16px 40px;
+            padding: 20px;
+            color: #333;
         }
         .container {
-            max-width: 820px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-            padding: 24px 36px 32px;
+            max-width: 1000px;
+            background: #ffffff;
+            padding: 30px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+
+        /* Menu Superior Padronizado */
         .top-nav {
             display: flex;
+            justify-content: flex-end;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 22px;
+            gap: 10px;
+            margin-bottom: 25px;
         }
-        .nav-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 5px 11px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-            color: #334155;
+        .top-nav a {
             background-color: #e2e8f0;
-            transition: background-color 0.15s ease, color 0.15s ease;
+            color: #334155;
+            padding: 8px 14px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
         }
-        .nav-pill:hover {
+        .top-nav a:hover, .top-nav a.active {
             background-color: #cbd5e1;
             color: #0f172a;
         }
-        .nav-pill.active {
-            background-color: #2563eb;
-            color: #ffffff;
-        }
-        .nav-pill.logout {
+        .top-nav a.logout {
             background-color: #fee2e2;
-            color: #dc2626;
-        }
-        .nav-pill.logout:hover {
-            background-color: #fecaca;
             color: #b91c1c;
         }
+        .top-nav a.logout:hover {
+            background-color: #fecaca;
+        }
+
+        /* Cabeçalho Centralizado Padronizado */
         .page-header {
             text-align: center;
-            margin-bottom: 22px;
+            margin-bottom: 25px;
         }
         .page-header h1 {
-            margin: 0 0 4px;
-            font-size: 21px;
-            font-weight: 700;
-            color: #0f172a;
-            letter-spacing: -0.01em;
+            font-size: 22px;
+            color: #1e293b;
+            margin: 0 0 6px 0;
+            font-weight: bold;
         }
         .page-header p {
+            font-size: 13px;
+            color: #64748b;
             margin: 0;
-            font-size: 12.5px;
-            color: #6b7280;
         }
+
+        /* Cartões Estruturais */
         .section-card {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px 18px 18px;
-            background-color: #ffffff;
-            margin-bottom: 18px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
         }
         .section-card:last-child {
             margin-bottom: 0;
         }
-        .section-title {
-            margin: 0 0 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 14px;
-            font-weight: 700;
-            color: #111827;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
         }
+        .card-header h3 {
+            margin: 0;
+            font-size: 15px;
+            color: #1e293b;
+            font-weight: bold;
+        }
+
+        /* Formulário e Inputs */
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px 16px;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
-        .field label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #1f2937;
+        .form-group {
+            margin-bottom: 0;
         }
-        .field input,
-        .field select {
-            width: 100%;
-            height: 36px;
-            padding: 6px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 6px;
+            color: #475569;
             font-size: 13px;
-            color: #111827;
-            background-color: #ffffff;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
-        .field input:focus,
-        .field select:focus {
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            height: 38px;
+            padding: 0 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 13px;
+            background-color: #f8fafc;
+            color: #334155;
             outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14);
         }
-        .field-submit {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            border-color: #3b82f6;
+            background-color: #fff;
         }
+
         .permissions-box {
             grid-column: 1 / -1;
-            border: 1px solid #e5e7eb;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
-            padding: 10px 12px;
-            background-color: #f9fafb;
-            margin-top: 2px;
+            padding: 12px 15px;
         }
         .permissions-box legend {
-            padding: 0 5px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #1f2937;
+            font-weight: bold;
+            color: #475569;
+            font-size: 13px;
+            padding: 0 6px;
         }
-        .checkbox-list {
+        .permissions-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px 16px;
-            margin-top: 2px;
+            gap: 10px 18px;
         }
-        .checkbox-item {
+        .permissions-list label {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 12px;
-            color: #1f2937;
+            margin: 0;
+            font-weight: normal;
+            font-size: 13px;
+            color: #334155;
             cursor: pointer;
         }
-        .checkbox-item input[type="checkbox"] {
-            width: 14px;
-            height: 14px;
+        .permissions-list input[type="checkbox"] {
             margin: 0;
-            accent-color: #2563eb;
-            cursor: pointer;
         }
         .helper-text {
-            font-size: 11px;
-            color: #6b7280;
+            font-size: 12px;
+            color: #64748b;
             margin-top: 8px;
         }
+
+        /* Botões Padronizados */
         .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 0;
-            border-radius: 6px;
-            font-weight: 600;
+            height: 38px;
+            padding: 0 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
             cursor: pointer;
-            transition: background-color 0.15s ease, opacity 0.15s ease;
+            transition: background 0.2s;
+            width: 100%;
         }
         .btn:disabled {
-            opacity: 0.45;
+            opacity: 0.5;
             cursor: not-allowed;
         }
         .btn-primary {
-            background-color: #2563eb;
+            background: #3b82f6;
             color: #ffffff;
-            height: 36px;
-            padding: 0 14px;
-            font-size: 13px;
-            width: 100%;
         }
         .btn-primary:hover:not(:disabled) {
-            background-color: #1d4ed8;
+            background: #2563eb;
         }
         .btn-sm {
-            padding: 5px 10px;
-            font-size: 11.5px;
+            height: auto;
+            width: auto;
+            padding: 6px 12px;
+            font-size: 12px;
         }
         .btn-secondary {
-            background-color: #475569;
+            background: #64748b;
             color: #ffffff;
         }
         .btn-secondary:hover:not(:disabled) {
-            background-color: #334155;
+            background: #475569;
         }
         .btn-danger {
-            background-color: #dc2626;
+            background: #b91c1c;
             color: #ffffff;
         }
         .btn-danger:hover:not(:disabled) {
-            background-color: #b91c1c;
+            background: #991b1b;
         }
         .btn-save-perm {
-            background-color: #2563eb;
+            background: #3b82f6;
             color: #ffffff;
-            padding: 6px 10px;
-            font-size: 11.5px;
+            height: auto;
+            padding: 6px 12px;
+            font-size: 12px;
             margin-top: 8px;
             width: 100%;
         }
         .btn-save-perm:hover:not(:disabled) {
-            background-color: #1d4ed8;
+            background: #2563eb;
         }
-        .msg {
-            padding: 10px 14px;
-            background-color: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            color: #065f46;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            font-size: 12.5px;
-            font-weight: 500;
-        }
-        .err {
-            padding: 10px 14px;
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
+
+        /* Alertas */
+        .alert-error {
+            background: #fee2e2;
             color: #b91c1c;
+            padding: 12px 15px;
             border-radius: 6px;
-            margin-bottom: 16px;
-            font-size: 12.5px;
-            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
         }
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* Tabela */
         .table-wrap {
             width: 100%;
             overflow-x: auto;
@@ -404,161 +413,146 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
             border-collapse: collapse;
         }
         th, td {
-            padding: 9px 10px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
             text-align: left;
-            font-size: 12px;
+            font-size: 13px;
             vertical-align: top;
         }
         th {
-            background-color: #f8fafc;
+            background: #f8fafc;
             color: #475569;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-        tbody tr:last-child td {
-            border-bottom: 0;
-        }
-        tbody tr:hover {
-            background-color: #f9fafb;
+            font-weight: bold;
         }
         .badge {
             display: inline-block;
-            padding: 2px 7px;
-            border-radius: 999px;
+            padding: 3px 8px;
+            border-radius: 4px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: bold;
         }
         .badge-active {
-            background-color: #dcfce7;
-            color: #166534;
+            background: #dcfce7;
+            color: #15803d;
         }
         .badge-inactive {
-            background-color: #f1f5f9;
+            background: #e2e8f0;
             color: #475569;
         }
-        .actions-cell {
+        .actions {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 5px;
+            gap: 6px;
         }
         .actions-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 6px;
         }
         .actions-row form {
             margin: 0;
         }
-        details.perm-dropdown {
-            width: 100%;
-        }
-        details.perm-dropdown > summary {
-            list-style: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #2563eb;
+        details summary {
+            font-size: 12px;
+            font-weight: bold;
+            color: #3b82f6;
             cursor: pointer;
-            user-select: none;
-        }
-        details.perm-dropdown > summary::-webkit-details-marker {
-            display: none;
-        }
-        details.perm-dropdown > summary::before {
-            content: "▸";
-            font-size: 10px;
-            transition: transform 0.15s ease;
-        }
-        details.perm-dropdown[open] > summary::before {
-            transform: rotate(90deg);
         }
         .perm-panel {
             margin-top: 6px;
-            padding: 8px 10px;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            background-color: #f8fafc;
-            min-width: 195px;
+            padding: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            min-width: 190px;
         }
         .perm-panel label {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 11.5px;
-            color: #1f2937;
-            padding: 2px 0;
+            font-weight: normal;
+            font-size: 12px;
+            color: #334155;
+            margin-bottom: 4px;
             white-space: nowrap;
             cursor: pointer;
         }
         .perm-panel input[type="checkbox"] {
             margin: 0;
-            accent-color: #2563eb;
         }
-        .perm-note {
+        .perm-panel small {
             display: block;
-            margin-top: 5px;
-            font-size: 10.5px;
+            font-size: 11px;
             color: #64748b;
-            white-space: normal;
-        }
-        @media (max-width: 680px) {
-            .container { padding: 20px 16px 24px; }
-            .form-grid { grid-template-columns: 1fr; }
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <nav class="top-nav" aria-label="Navegação principal">
-        <a href="home.php" class="nav-pill<?php echo $paginaAtual === 'home.php' ? ' active' : ''; ?>">Início</a>
-        <a href="inscricao.php" class="nav-pill<?php echo $paginaAtual === 'inscricao.php' ? ' active' : ''; ?>">Nova Inscrição</a>
-        <a href="painel.php" class="nav-pill<?php echo $paginaAtual === 'painel.php' ? ' active' : ''; ?>">Painel Geral</a>
-        <a href="comunicacao.php" class="nav-pill<?php echo $paginaAtual === 'comunicacao.php' ? ' active' : ''; ?>">Comunicação</a>
-        <a href="buscar_mala.php" class="nav-pill<?php echo $paginaAtual === 'buscar_mala.php' ? ' active' : ''; ?>">Malas</a>
-        <a href="admin_usuarios.php" class="nav-pill<?php echo $paginaAtual === 'admin_usuarios.php' ? ' active' : ''; ?>">Usuários</a>
-        <a href="auditoria.php" class="nav-pill<?php echo $paginaAtual === 'auditoria.php' ? ' active' : ''; ?>">Auditoria</a>
-        <a href="logout.php" class="nav-pill logout">Sair</a>
-    </nav>
 
+<div class="container">
+
+    <!-- Menu Superior Padronizado -->
+    <div class="top-nav">
+        <a href="home.php">Início</a>
+        <a href="formulario.php">Nova Inscrição</a>
+        <a href="dashboard.php">Painel Geral</a>
+        <a href="comunicacao.php">Comunicação</a>
+        <a href="buscar_mala.php">Malas</a>
+        <?php if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin'): ?>
+            <a href="admin_usuarios.php" class="active">Usuários</a>
+            <a href="logs_auditoria.php">Auditoria</a>
+        <?php endif; ?>
+        <a href="logout.php" class="logout">Sair</a>
+    </div>
+
+    <!-- Cabeçalho Centralizado Padronizado -->
     <div class="page-header">
         <h1>Gerenciamento de Usuários do Sistema</h1>
         <p>Cadastre novos acessos, defina permissões por tela e gerencie contas ativas</p>
     </div>
 
-    <?php if ($mensagem): ?><div class="msg"><?php echo escape_html($mensagem); ?></div><?php endif; ?>
-    <?php if ($erro): ?><div class="err"><?php echo escape_html($erro); ?></div><?php endif; ?>
+    <?php if (!empty($erro)): ?>
+        <div class="alert-error"><?php echo escape_html($erro); ?></div>
+    <?php endif; ?>
 
-    <section class="section-card">
-        <h2 class="section-title">Cadastrar Novo Acesso</h2>
+    <?php if (!empty($mensagem)): ?>
+        <div class="alert-success"><?php echo escape_html($mensagem); ?></div>
+    <?php endif; ?>
+
+    <!-- Card de Cadastro -->
+    <div class="section-card">
+        <div class="card-header">
+            <h3>Cadastrar Novo Acesso</h3>
+            <span style="font-size: 12px; color: #64748b;">Acesso exclusivo SuperAdmin</span>
+        </div>
+
         <form method="post" class="form-grid">
             <input type="hidden" name="csrf_token" value="<?php echo escape_html(csrf_token()); ?>">
             <input type="hidden" name="acao" value="criar">
 
-            <div class="field">
+            <div class="form-group">
                 <label for="nome_completo">Nome Completo</label>
                 <input id="nome_completo" type="text" name="nome_completo" required>
             </div>
 
-            <div class="field">
+            <div class="form-group">
                 <label for="usuario">Nome de Usuário (login)</label>
                 <input id="usuario" type="text" name="usuario" required>
             </div>
 
-            <div class="field">
+            <div class="form-group">
                 <label for="email">E-mail</label>
                 <input id="email" type="email" name="email" required maxlength="254">
             </div>
 
-            <div class="field">
+            <div class="form-group">
                 <label for="senha">Senha Inicial</label>
                 <input id="senha" type="password" name="senha" required minlength="12" maxlength="200" autocomplete="new-password">
             </div>
 
-            <div class="field">
+            <div class="form-group">
                 <label for="perfil">Perfil</label>
                 <select id="perfil" name="perfil">
                     <option value="Admin">Admin</option>
@@ -567,27 +561,32 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
                 </select>
             </div>
 
-            <div class="field-submit">
+            <div class="form-group" style="display: flex; align-items: flex-end;">
                 <button type="submit" class="btn btn-primary">Salvar Usuário</button>
             </div>
 
             <fieldset class="permissions-box">
                 <legend>Permissões de Acesso (Páginas / Telas)</legend>
-                <div class="checkbox-list">
+                <div class="permissions-list">
                     <?php foreach ($paginas as $pagina => $rotulo): ?>
-                        <label class="checkbox-item">
+                        <label>
                             <input type="checkbox" name="paginas[]" value="<?php echo escape_html($pagina); ?>" checked>
-                            <span><?php echo escape_html($rotulo); ?></span>
+                            <?php echo escape_html($rotulo); ?>
                         </label>
                     <?php endforeach; ?>
                 </div>
                 <div class="helper-text">SuperAdmins mantêm acesso total independentemente destas marcações.</div>
             </fieldset>
         </form>
-    </section>
+    </div>
 
-    <section class="section-card">
-        <h2 class="section-title">Usuários Cadastrados</h2>
+    <!-- Card de Listagem -->
+    <div class="section-card">
+        <div class="card-header">
+            <h3>Usuários Cadastrados</h3>
+            <span style="font-size: 12px; color: #64748b;">Status e permissões</span>
+        </div>
+
         <div class="table-wrap">
             <table>
                 <thead>
@@ -615,46 +614,42 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
                                 </span>
                             </td>
                             <td><?php echo escape_html($row['ultimo_acesso'] ?? 'Nunca'); ?></td>
-                            <td>
-                                <div class="actions-cell">
-                                    <details class="perm-dropdown">
-                                        <summary>Permissões</summary>
-                                        <form method="post" class="perm-panel">
-                                            <input type="hidden" name="csrf_token" value="<?php echo escape_html(csrf_token()); ?>">
-                                            <input type="hidden" name="acao" value="permissoes">
-                                            <input type="hidden" name="usuario_id" value="<?php echo $userId; ?>">
-                                            <?php foreach ($paginas as $pagina => $rotulo): ?>
-                                                <label>
-                                                    <input type="checkbox" name="paginas[]" value="<?php echo escape_html($pagina); ?>"
-                                                        <?php echo $row['perfil'] === 'SuperAdmin' || in_array($pagina, $permissoesPorUsuario[$userId] ?? [], true) ? 'checked' : ''; ?>
-                                                        <?php echo $row['perfil'] === 'SuperAdmin' ? 'disabled' : ''; ?>>
-                                                    <span><?php echo escape_html($rotulo); ?></span>
-                                                </label>
-                                            <?php endforeach; ?>
-                                            <?php if ($row['perfil'] === 'SuperAdmin'): ?>
-                                                <small class="perm-note">Acesso total para SuperAdmin.</small>
-                                            <?php endif; ?>
-                                            <button type="submit" class="btn btn-save-perm">Salvar permissões</button>
-                                        </form>
-                                    </details>
-
-                                    <div class="actions-row">
-                                        <form method="post">
-                                            <input type="hidden" name="csrf_token" value="<?php echo escape_html(csrf_token()); ?>">
-                                            <input type="hidden" name="acao" value="status">
-                                            <input type="hidden" name="usuario_id" value="<?php echo $userId; ?>">
-                                            <button type="submit" class="btn btn-sm btn-secondary" <?php echo $userId === (int) $_SESSION['usuario_id'] ? 'disabled' : ''; ?>>
-                                                <?php echo $row['status'] === 'Ativo' ? 'Inativar' : 'Ativar'; ?>
-                                            </button>
-                                        </form>
-
-                                        <form method="post" onsubmit="return confirm('Confirma a exclusão permanente deste usuário? Esta ação não pode ser desfeita.');">
-                                            <input type="hidden" name="csrf_token" value="<?php echo escape_html(csrf_token()); ?>">
-                                            <input type="hidden" name="acao" value="excluir">
-                                            <input type="hidden" name="usuario_id" value="<?php echo $userId; ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger" <?php echo $userId === (int) $_SESSION['usuario_id'] ? 'disabled' : ''; ?>>Excluir</button>
-                                        </form>
-                                    </div>
+                            <td class="actions">
+                                <details>
+                                    <summary>Permissões</summary>
+                                    <form method="post" class="perm-panel">
+                                        <input type="hidden" name="csrf_token" value="<?php echo escape_html(csrf_token()); ?>">
+                                        <input type="hidden" name="acao" value="permissoes">
+                                        <input type="hidden" name="usuario_id" value="<?php echo $userId; ?>">
+                                        <?php foreach ($paginas as $pagina => $rotulo): ?>
+                                            <label>
+                                                <input type="checkbox" name="paginas[]" value="<?php echo escape_html($pagina); ?>"
+                                                    <?php echo $row['perfil'] === 'SuperAdmin' || in_array($pagina, $permissoesPorUsuario[$userId] ?? [], true) ? 'checked' : ''; ?>
+                                                    <?php echo $row['perfil'] === 'SuperAdmin' ? 'disabled' : ''; ?>>
+                                                <?php echo escape_html($rotulo); ?>
+                                            </label>
+                                        <?php endforeach; ?>
+                                        <?php if ($row['perfil'] === 'SuperAdmin'): ?>
+                                            <small>Acesso total para SuperAdmin.</small>
+                                        <?php endif; ?>
+                                        <button type="submit" class="btn btn-save-perm">Salvar permissões</button>
+                                    </form>
+                                </details>
+                                <div class="actions-row">
+                                    <form method="post">
+                                        <input type="hidden" name="csrf_token" value="<?php echo escape_html(csrf_token()); ?>">
+                                        <input type="hidden" name="acao" value="status">
+                                        <input type="hidden" name="usuario_id" value="<?php echo $userId; ?>">
+                                        <button type="submit" class="btn btn-sm btn-secondary" <?php echo $userId === (int) $_SESSION['usuario_id'] ? 'disabled' : ''; ?>>
+                                            <?php echo $row['status'] === 'Ativo' ? 'Inativar' : 'Ativar'; ?>
+                                        </button>
+                                    </form>
+                                    <form method="post" onsubmit="return confirm('Confirma a exclusão permanente deste usuário? Esta ação não pode ser desfeita.');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo escape_html(csrf_token()); ?>">
+                                        <input type="hidden" name="acao" value="excluir">
+                                        <input type="hidden" name="usuario_id" value="<?php echo $userId; ?>">
+                                        <button type="submit" class="btn btn-sm btn-danger" <?php echo $userId === (int) $_SESSION['usuario_id'] ? 'disabled' : ''; ?>>Excluir</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -662,8 +657,14 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
                 </tbody>
             </table>
         </div>
-    </section>
+    </div>
+
 </div>
+
 </body>
 </html>
-<?php $conn->close(); ?>
+<?php
+if (isset($conn)) {
+    $conn->close();
+}
+?>
