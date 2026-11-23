@@ -50,7 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -66,15 +65,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             color: #333;
         }
         .container {
-            max-width: 1000px; /* Padronizado com as demais telas */
+            max-width: 1000px;
             background: #ffffff;
             padding: 30px;
             margin: auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
-        /* Menu Superior Padronizado */
         .top-nav {
             display: flex;
             justify-content: flex-end;
@@ -103,8 +100,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         .top-nav a.logout:hover {
             background-color: #fecaca;
         }
-
-        /* Cabeçalho Centralizado Padronizado */
         .page-header {
             text-align: center;
             margin-bottom: 25px;
@@ -120,14 +115,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             color: #64748b;
             margin: 0;
         }
-
-        /* Cartões Estruturais */
         .section-card {
             background: #ffffff;
             padding: 20px;
             border-radius: 6px;
             border: 1px solid #e2e8f0;
             margin-bottom: 25px;
+        }
+        .section-card:last-child {
+            margin-bottom: 0;
         }
         .card-header {
             display: flex;
@@ -143,8 +139,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             color: #1e293b;
             font-weight: bold;
         }
-
-        /* Formulário e Inputs */
         .form-group {
             margin-bottom: 15px;
         }
@@ -171,8 +165,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             border-color: #3b82f6;
             background-color: #fff;
         }
-
-        /* Botões Padronizados */
         .btn {
             height: 38px;
             padding: 0 16px;
@@ -220,8 +212,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         .btn-toggle:hover {
             background-color: #cbd5e1;
         }
-
-        /* Alertas */
         .alert-error {
             background: #fee2e2;
             color: #b91c1c;
@@ -242,8 +232,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             font-size: 13px;
             font-weight: bold;
         }
-
-        /* Grid de Resultado */
         .result-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -254,7 +242,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
                 grid-template-columns: 1fr;
             }
         }
-
         .info-list {
             font-size: 13px;
             line-height: 1.8;
@@ -265,7 +252,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             border: 1px solid #e2e8f0;
             margin-bottom: 15px;
         }
-
         .badge {
             display: inline-block;
             padding: 3px 8px;
@@ -275,8 +261,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         }
         .badge-pending { background: #fef3c7; color: #b45309; }
         .badge-paid { background: #dcfce7; color: #15803d; }
-
-        /* Bloco da Etiqueta */
         .etiqueta-wrapper {
             text-align: center;
         }
@@ -329,18 +313,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             display: block;
             margin: 0 auto;
         }
-
-        /* Rodapé Institucional */
-        .system-footer {
-            text-align: center;
-            font-size: 12px;
-            color: #64748b;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-            margin-top: 25px;
-        }
-
-        /* Impressão Exclusiva da Etiqueta */
         @media print {
             body {
                 background-color: #fff;
@@ -372,8 +344,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
 <body>
 
 <div class="container">
-
-    <!-- Menu Superior Padronizado -->
     <div class="top-nav">
         <a href="home.php">Início</a>
         <a href="formulario.php">Nova Inscrição</a>
@@ -387,21 +357,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         <a href="logout.php" class="logout">Sair</a>
     </div>
 
-    <!-- Cabeçalho Centralizado Padronizado -->
     <div class="page-header">
         <h1>Rastreio e Gestão de Bagagens</h1>
         <p>Consulte participantes e gerencie etiquetas de identificação de malas</p>
     </div>
 
     <?php if (!empty($erro)): ?>
-        <div class="alert-error"><?php echo $erro; ?></div>
+        <div class="alert-error"><?php echo htmlspecialchars($erro, ENT_QUOTES, 'UTF-8'); ?></div>
     <?php endif; ?>
 
     <?php if (!empty($sucesso_classe)): ?>
-        <div class="alert-success"><?php echo $sucesso_classe; ?></div>
+        <div class="alert-success"><?php echo htmlspecialchars($sucesso_classe, ENT_QUOTES, 'UTF-8'); ?></div>
     <?php endif; ?>
 
-    <!-- Card de Pesquisa -->
     <div class="section-card">
         <div class="card-header">
             <h3>Localizar Participante</h3>
@@ -411,7 +379,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
             <div class="form-group">
                 <label for="busca">Dados do Participante:</label>
-                <input type="text" id="busca" name="busca" required placeholder="Ex: 000.000.000-00, Nome completo ou MALA-XXXX" value="<?php echo isset($_POST['busca']) ? htmlspecialchars($_POST['busca']) : (isset($_POST['termo_pesquisa_atual']) ? htmlspecialchars($_POST['termo_pesquisa_atual']) : ''); ?>">
+                <input type="text" id="busca" name="busca" required placeholder="Ex: 000.000.000-00, Nome completo ou MALA-XXXX" value="<?php echo isset($_POST['busca']) ? htmlspecialchars($_POST['busca'], ENT_QUOTES, 'UTF-8') : (isset($_POST['termo_pesquisa_atual']) ? htmlspecialchars($_POST['termo_pesquisa_atual'], ENT_QUOTES, 'UTF-8') : ''); ?>">
             </div>
             <button type="submit" class="btn btn-primary">Pesquisar Inscrição</button>
         </form>
@@ -425,7 +393,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         ?>
         
         <div class="result-grid">
-            <!-- Coluna 1: Dados do Inscrito e Controle de Classe -->
             <div class="section-card" style="margin-bottom: 0;">
                 <div class="card-header">
                     <h3>Dados e Classificação</h3>
@@ -445,8 +412,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
 
                 <form method="POST" action="">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8'); ?>">
-                    <input type="hidden" name="id_inscricao" value="<?php echo $inscricao['id']; ?>">
-                    <input type="hidden" name="termo_pesquisa_atual" value="<?php echo htmlspecialchars($_POST['busca'] ?? $_POST['termo_pesquisa_atual']); ?>">
+                    <input type="hidden" name="id_inscricao" value="<?php echo (int) $inscricao['id']; ?>">
+                    <input type="hidden" name="termo_pesquisa_atual" value="<?php echo htmlspecialchars($_POST['busca'] ?? $_POST['termo_pesquisa_atual'], ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label for="classe_mala">Alterar Classe da Mala:</label>
                         <select name="classe_mala" id="classe_mala">
@@ -461,7 +428,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
                 </form>
             </div>
 
-            <!-- Coluna 2: Etiqueta de Bagagem -->
             <div class="section-card" style="margin-bottom: 0;">
                 <div class="card-header">
                     <h3>Etiqueta de Identificação</h3>
@@ -471,11 +437,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
                 <div id="etiqueta-box" class="etiqueta-wrapper">
                     <div class="etiqueta-bagagem">
                         <div class="etiqueta-header">Etiqueta de Bagagem</div>
-                        <div style="font-size: 13px; color: #475569;">Código: <span class="codigo-badge"><?php echo $codigo_mala; ?></span></div>
-                        <div style="font-size: 13px; color: #475569; margin-top: 4px;">Classe: <span class="classe-badge"><?php echo htmlspecialchars($classe_atual); ?></span></div>
+                        <div style="font-size: 13px; color: #475569;">Código: <span class="codigo-badge"><?php echo htmlspecialchars($codigo_mala, ENT_QUOTES, 'UTF-8'); ?></span></div>
+                        <div style="font-size: 13px; color: #475569; margin-top: 4px;">Classe: <span class="classe-badge"><?php echo htmlspecialchars($classe_atual, ENT_QUOTES, 'UTF-8'); ?></span></div>
                         
                         <div class="qr-box">
-                            <img src="<?php echo $qrUrl; ?>" alt="QR Code Mala <?php echo $codigo_mala; ?>">
+                            <img src="<?php echo htmlspecialchars($qrUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="QR Code Mala <?php echo htmlspecialchars($codigo_mala, ENT_QUOTES, 'UTF-8'); ?>">
                         </div>
                         
                         <div>
@@ -489,7 +455,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
 </div>
 
 <script>
-// Máscara de CPF no campo de busca
 document.getElementById('busca').addEventListener('input', function (e) {
     let value = e.target.value;
     let apenasNumeros = value.replace(/\D/g, '');
@@ -502,7 +467,6 @@ document.getElementById('busca').addEventListener('input', function (e) {
     }
 });
 
-// Função para exibir/ocultar o card da etiqueta
 function toggleEtiqueta(id, btn) {
     let el = document.getElementById(id);
     if (el.style.display === "none") {
