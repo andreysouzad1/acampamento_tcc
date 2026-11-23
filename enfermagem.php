@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $registrosPdf[] = [
                     'nome' => (string) $inscrito['nome'],
                     'campos' => [
-                        'Nascimento / idade: ' . setor_data_nascimento($inscrito['data_nascimento'] ?? null),
+                        'Idade / nascimento: ' . setor_data_nascimento($inscrito['data_nascimento'] ?? null),
                         'Medicamento controlado: ' . (setor_flag_ativa($inscrito['medicamento_controlado'] ?? null) ? 'Sim' : '—'),
                         'Restrição alimentar: ' . setor_descricao($inscrito['restricao_alimentar'] ?? null, $inscrito['descricao_alimentar'] ?? null),
                         'Alergias: ' . setor_descricao($inscrito['alergia'] ?? null, $inscrito['descricao_alergia'] ?? null),
@@ -231,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             border-collapse: collapse;
         }
         th, td {
-            padding: 10px;
+            padding: 10px 8px;
             border-bottom: 1px solid #e2e8f0;
             text-align: left;
             vertical-align: top;
@@ -242,6 +242,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             background: #f8fafc;
             color: #475569;
             font-weight: bold;
+            white-space: nowrap;
+        }
+        td.col-idade {
             white-space: nowrap;
         }
         tbody tr:last-child td {
@@ -323,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     <thead>
                         <tr>
                             <th>Nome</th>
-                            <th>Nascimento / idade</th>
+                            <th>Idade / nascimento</th>
                             <th>Medicamento controlado</th>
                             <th>Restrição alimentar</th>
                             <th>Alergias</th>
@@ -334,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     <?php foreach ($inscritos as $inscrito): ?>
                         <tr>
                             <td><?php echo escape_html((string) $inscrito['nome']); ?></td>
-                            <td><?php echo escape_html(setor_data_nascimento($inscrito['data_nascimento'] ?? null)); ?></td>
+                            <td class="col-idade"><?php echo escape_html(setor_data_nascimento($inscrito['data_nascimento'] ?? null)); ?></td>
                             <td><?php echo setor_flag_ativa($inscrito['medicamento_controlado'] ?? null) ? 'Sim' : '—'; ?></td>
                             <td><?php echo escape_html(setor_descricao($inscrito['restricao_alimentar'] ?? null, $inscrito['descricao_alimentar'] ?? null)); ?></td>
                             <td><?php echo escape_html(setor_descricao($inscrito['alergia'] ?? null, $inscrito['descricao_alergia'] ?? null)); ?></td>
