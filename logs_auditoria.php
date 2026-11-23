@@ -170,7 +170,7 @@ $logs = $conn->query(
     <!-- Menu Superior Padronizado -->
     <div class="top-nav">
         <a href="home.php">Início</a>
-        <a href="index.php">Nova Inscrição</a>
+        <a href="formulario.php">Nova Inscrição</a>
         <a href="dashboard.php">Painel Geral</a>
         <a href="comunicacao.php">Comunicação</a>
         <a href="buscar_mala.php">Malas</a>
