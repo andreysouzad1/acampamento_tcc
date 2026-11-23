@@ -57,6 +57,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rastreio de Malas - Acampamento "No Limite com Cristo"</title>
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
@@ -65,16 +68,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             color: #333;
         }
         .container {
+            width: 100%;
             max-width: 1000px;
             background: #ffffff;
             padding: 30px;
-            margin: auto;
+            margin: 0 auto;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+
+        /* Menu Superior Padronizado */
         .top-nav {
             display: flex;
             justify-content: flex-end;
+            align-items: center;
             flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 25px;
@@ -100,6 +107,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         .top-nav a.logout:hover {
             background-color: #fecaca;
         }
+
+        /* Cabeçalho Centralizado Padronizado */
         .page-header {
             text-align: center;
             margin-bottom: 25px;
@@ -115,7 +124,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             color: #64748b;
             margin: 0;
         }
+
+        /* Cartões Estruturais */
         .section-card {
+            width: 100%;
             background: #ffffff;
             padding: 20px;
             border-radius: 6px;
@@ -139,6 +151,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             color: #1e293b;
             font-weight: bold;
         }
+
+        /* Formulário e Inputs */
         .form-group {
             margin-bottom: 15px;
         }
@@ -155,7 +169,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             padding: 0 10px;
             border: 1px solid #cbd5e1;
             border-radius: 4px;
-            box-sizing: border-box;
             font-size: 13px;
             background-color: #f8fafc;
             color: #334155;
@@ -165,6 +178,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             border-color: #3b82f6;
             background-color: #fff;
         }
+
+        /* Botões Padronizados */
         .btn {
             height: 38px;
             padding: 0 16px;
@@ -212,6 +227,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         .btn-toggle:hover {
             background-color: #cbd5e1;
         }
+
+        /* Alertas */
         .alert-error {
             background: #fee2e2;
             color: #b91c1c;
@@ -232,9 +249,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             font-size: 13px;
             font-weight: bold;
         }
+
+        /* Grid de Resultado */
         .result-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 20px;
         }
         @media (max-width: 768px) {
@@ -242,6 +261,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
                 grid-template-columns: 1fr;
             }
         }
+
         .info-list {
             font-size: 13px;
             line-height: 1.8;
@@ -252,6 +272,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             border: 1px solid #e2e8f0;
             margin-bottom: 15px;
         }
+
         .badge {
             display: inline-block;
             padding: 3px 8px;
@@ -261,6 +282,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         }
         .badge-pending { background: #fef3c7; color: #b45309; }
         .badge-paid { background: #dcfce7; color: #15803d; }
+
+        /* Bloco da Etiqueta */
         .etiqueta-wrapper {
             text-align: center;
         }
@@ -272,7 +295,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             display: inline-block;
             width: 100%;
             max-width: 300px;
-            box-sizing: border-box;
         }
         .etiqueta-header {
             font-size: 15px;
@@ -313,6 +335,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             display: block;
             margin: 0 auto;
         }
+
+        /* Impressão Exclusiva da Etiqueta */
         @media print {
             body {
                 background-color: #fff;
@@ -344,6 +368,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
 <body>
 
 <div class="container">
+
+    <!-- Menu Superior Padronizado -->
     <div class="top-nav">
         <a href="home.php">Início</a>
         <a href="formulario.php">Nova Inscrição</a>
@@ -357,6 +383,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         <a href="logout.php" class="logout">Sair</a>
     </div>
 
+    <!-- Cabeçalho Centralizado Padronizado -->
     <div class="page-header">
         <h1>Rastreio e Gestão de Bagagens</h1>
         <p>Consulte participantes e gerencie etiquetas de identificação de malas</p>
@@ -370,6 +397,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         <div class="alert-success"><?php echo htmlspecialchars($sucesso_classe, ENT_QUOTES, 'UTF-8'); ?></div>
     <?php endif; ?>
 
+    <!-- Card de Pesquisa -->
     <div class="section-card">
         <div class="card-header">
             <h3>Localizar Participante</h3>
@@ -393,15 +421,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         ?>
         
         <div class="result-grid">
+            <!-- Coluna 1: Dados do Inscrito e Controle de Classe -->
             <div class="section-card" style="margin-bottom: 0;">
                 <div class="card-header">
                     <h3>Dados e Classificação</h3>
                 </div>
                 
                 <div class="info-list">
-                    <strong>Inscrito:</strong> <?php echo htmlspecialchars($inscricao['nome']); ?><br>
-                    <strong>CPF:</strong> <?php echo htmlspecialchars($inscricao['cpf']); ?><br>
-                    <strong>Telefone:</strong> <?php echo htmlspecialchars($inscricao['telefone']); ?><br>
+                    <strong>Inscrito:</strong> <?php echo htmlspecialchars($inscricao['nome'], ENT_QUOTES, 'UTF-8'); ?><br>
+                    <strong>CPF:</strong> <?php echo htmlspecialchars($inscricao['cpf'], ENT_QUOTES, 'UTF-8'); ?><br>
+                    <strong>Telefone:</strong> <?php echo htmlspecialchars($inscricao['telefone'], ENT_QUOTES, 'UTF-8'); ?><br>
                     <strong>Status Pagamento:</strong> 
                     <?php if ($inscricao['status_pagamento'] == 'Pendente'): ?>
                         <span class="badge badge-pending">Pendente</span>
@@ -428,6 +457,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
                 </form>
             </div>
 
+            <!-- Coluna 2: Etiqueta de Bagagem -->
             <div class="section-card" style="margin-bottom: 0;">
                 <div class="card-header">
                     <h3>Etiqueta de Identificação</h3>

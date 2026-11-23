@@ -84,6 +84,39 @@ require_login($conn);
         .form-row .form-group {
             flex: 1;
         }
+
+        /* Distribuição equilibrada para Endereço Residencial */
+        .endereco-grid-principal {
+            display: grid;
+            grid-template-columns: 170px minmax(0, 1fr) 130px;
+            gap: 15px;
+        }
+        .endereco-grid-secundario {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+        .endereco-grid-localidade {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 115px;
+            gap: 15px;
+        }
+        .endereco-grid-principal .form-group,
+        .endereco-grid-secundario .form-group,
+        .endereco-grid-localidade .form-group {
+            margin-bottom: 18px;
+        }
+        @media (max-width: 768px) {
+            .form-row,
+            .endereco-grid-principal,
+            .endereco-grid-secundario,
+            .endereco-grid-localidade {
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+
         label {
             display: block;
             font-weight: bold;
@@ -262,38 +295,38 @@ require_login($conn);
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
         <h3 style="font-size: 15px; color: #1e293b; margin-bottom: 15px; font-weight: bold;">Endereço Residencial</h3>
 
-        <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+        <div class="endereco-grid-principal">
+            <div class="form-group">
                 <label for="cep">CEP *</label>
                 <input type="text" id="cep" name="cep" maxlength="9" oninput="mascaraCEP(this)" onblur="pesquisarCEP(this.value)" placeholder="00000-000" required>
             </div>
-            <div class="form-group" style="flex: 2;">
+            <div class="form-group">
                 <label for="rua">Rua / Logradouro *</label>
                 <input type="text" id="rua" name="rua" placeholder="Preenchimento automático" required readonly>
             </div>
-        </div>
-
-        <div class="form-row">
-            <div class="form-group" style="flex: 1;">
+            <div class="form-group">
                 <label for="numero">Número *</label>
                 <input type="text" id="numero" name="numero" placeholder="Ex: 123" required>
             </div>
-            <div class="form-group" style="flex: 1;">
+        </div>
+
+        <div class="endereco-grid-secundario">
+            <div class="form-group">
                 <label for="complemento">Complemento</label>
                 <input type="text" id="complemento" name="complemento" placeholder="Apt, Bloco, Casa">
             </div>
-            <div class="form-group" style="flex: 2;">
+            <div class="form-group">
                 <label for="bairro">Bairro *</label>
                 <input type="text" id="bairro" name="bairro" placeholder="Preenchimento automático" required readonly>
             </div>
         </div>
 
-        <div class="form-row">
-            <div class="form-group" style="flex: 2;">
+        <div class="endereco-grid-localidade">
+            <div class="form-group">
                 <label for="cidade">Cidade *</label>
                 <input type="text" id="cidade" name="cidade" placeholder="Preenchimento automático" required readonly>
             </div>
-            <div class="form-group" style="flex: 1;">
+            <div class="form-group">
                 <label for="estado">Estado (UF) *</label>
                 <input type="text" id="estado" name="estado" placeholder="UF" required readonly>
             </div>
