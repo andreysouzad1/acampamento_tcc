@@ -198,6 +198,8 @@ $inscrito = $result->fetch_assoc();
 
     <div class="top-nav">
         <a href="dashboard.php">Voltar ao Painel</a>
+        <?php if (user_can_access_page($conn, 'enfermagem')): ?><a href="enfermagem.php">Enfermagem</a><?php endif; ?>
+        <?php if (user_can_access_page($conn, 'cozinha')): ?><a href="cozinha.php">Cozinha</a><?php endif; ?>
     </div>
 
     <h2>Editar Inscrição (ID: <?php echo $inscrito['id']; ?>)</h2>

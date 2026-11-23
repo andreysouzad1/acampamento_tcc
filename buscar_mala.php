@@ -376,6 +376,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
         <a href="dashboard.php">Painel Geral</a>
         <a href="comunicacao.php">Comunicação</a>
         <a href="buscar_mala.php" class="active">Malas</a>
+        <?php if (user_can_access_page($conn, 'enfermagem')): ?><a href="enfermagem.php">Enfermagem</a><?php endif; ?>
+        <?php if (user_can_access_page($conn, 'cozinha')): ?><a href="cozinha.php">Cozinha</a><?php endif; ?>
         <?php if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin'): ?>
             <a href="admin_usuarios.php">Usuários</a>
             <a href="logs_auditoria.php">Auditoria</a>

@@ -262,6 +262,8 @@ $result = $conn->query($sql);
         <a href="dashboard.php">Painel Geral</a>
         <a href="comunicacao.php" class="active">Comunicação</a>
         <a href="buscar_mala.php">Malas</a>
+        <?php if (user_can_access_page($conn, 'enfermagem')): ?><a href="enfermagem.php">Enfermagem</a><?php endif; ?>
+        <?php if (user_can_access_page($conn, 'cozinha')): ?><a href="cozinha.php">Cozinha</a><?php endif; ?>
         <?php if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin'): ?>
             <a href="admin_usuarios.php">Usuários</a>
             <a href="logs_auditoria.php">Auditoria</a>

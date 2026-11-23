@@ -174,6 +174,8 @@ $logs = $conn->query(
         <a href="dashboard.php">Painel Geral</a>
         <a href="comunicacao.php">Comunicação</a>
         <a href="buscar_mala.php">Malas</a>
+        <a href="enfermagem.php">Enfermagem</a>
+        <a href="cozinha.php">Cozinha</a>
         <a href="admin_usuarios.php">Usuários</a>
         <a href="logs_auditoria.php" class="active">Auditoria</a>
         <a href="logout.php" class="logout">Sair</a>

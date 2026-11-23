@@ -500,6 +500,8 @@ while ($permission = $permissionRows->fetch_assoc()) {
         <a href="dashboard.php">Painel Geral</a>
         <a href="comunicacao.php">Comunicação</a>
         <a href="buscar_mala.php">Malas</a>
+        <a href="enfermagem.php">Enfermagem</a>
+        <a href="cozinha.php">Cozinha</a>
         <?php if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin'): ?>
             <a href="admin_usuarios.php" class="active">Usuários</a>
             <a href="logs_auditoria.php">Auditoria</a>
@@ -570,12 +572,13 @@ while ($permission = $permissionRows->fetch_assoc()) {
                 <div class="permissions-list">
                     <?php foreach ($paginas as $pagina => $rotulo): ?>
                         <label>
-                            <input type="checkbox" name="paginas[]" value="<?php echo escape_html($pagina); ?>" checked>
+                            <input type="checkbox" name="paginas[]" value="<?php echo escape_html($pagina); ?>"
+                                <?php echo in_array($pagina, ['enfermagem', 'cozinha'], true) ? '' : 'checked'; ?>>
                             <?php echo escape_html($rotulo); ?>
                         </label>
                     <?php endforeach; ?>
                 </div>
-                <div class="helper-text">SuperAdmins mantêm acesso total independentemente destas marcações.</div>
+                <div class="helper-text">As telas de Enfermagem e Cozinha exigem autorização explícita. SuperAdmins mantêm acesso total.</div>
             </fieldset>
         </form>
     </div>

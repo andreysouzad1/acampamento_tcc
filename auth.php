@@ -99,7 +99,7 @@ function initialize_auth(mysqli $conn): void
             "INSERT IGNORE INTO permissoes_paginas (usuario_id, pagina)
              SELECT id, ? FROM usuarios WHERE perfil <> 'SuperAdmin'"
         );
-        foreach (array_keys(accessible_pages()) as $page) {
+        foreach (['home', 'formulario', 'dashboard', 'comunicacao', 'buscar_mala'] as $page) {
             $permissionSeed->bind_param('s', $page);
             $permissionSeed->execute();
         }
@@ -179,7 +179,16 @@ function initialize_auth(mysqli $conn): void
             );
             $stmt->bind_param('ssssi', $username, $hash, $fullName, $role, $mustChangePassword);
             $stmt->execute();
+            $seededUserId = (int) $conn->insert_id;
             $stmt->close();
+            $permissionStmt = $conn->prepare(
+                'INSERT IGNORE INTO permissoes_paginas (usuario_id, pagina) VALUES (?, ?)'
+            );
+            foreach (['home', 'formulario', 'dashboard', 'comunicacao', 'buscar_mala'] as $page) {
+                $permissionStmt->bind_param('is', $seededUserId, $page);
+                $permissionStmt->execute();
+            }
+            $permissionStmt->close();
         }
     }
 
@@ -281,18 +290,12 @@ function require_login(mysqli $conn): void
             'dashboard.php' => 'dashboard',
             'editar.php' => 'dashboard',
             'comunicacao.php' => 'comunicacao',
-            'buscar_mala.php' => 'buscar_mala'
+            'buscar_mala.php' => 'buscar_mala',
+            'enfermagem.php' => 'enfermagem',
+            'cozinha.php' => 'cozinha'
         ];
         if (isset($pagePermissions[$currentPage])) {
-            $page = $pagePermissions[$currentPage];
-            $permissionStmt = $conn->prepare(
-                'SELECT 1 FROM permissoes_paginas WHERE usuario_id = ? AND pagina = ? LIMIT 1'
-            );
-            $permissionStmt->bind_param('is', $userId, $page);
-            $permissionStmt->execute();
-            $allowed = $permissionStmt->get_result()->num_rows === 1;
-            $permissionStmt->close();
-            if (!$allowed) {
+            if (!user_can_access_page($conn, $pagePermissions[$currentPage])) {
                 http_response_code(403);
                 exit('Acesso não autorizado para esta página. <a href="logout.php">Sair</a>');
             }
@@ -317,8 +320,30 @@ function accessible_pages(): array
         'formulario' => 'Nova Inscrição',
         'dashboard' => 'Painel Geral',
         'comunicacao' => 'Comunicação',
-        'buscar_mala' => 'Malas'
+        'buscar_mala' => 'Malas',
+        'enfermagem' => 'Enfermagem',
+        'cozinha' => 'Cozinha'
     ];
+}
+
+function user_can_access_page(mysqli $conn, string $page): bool
+{
+    if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin') {
+        return true;
+    }
+    if (empty($_SESSION['usuario_id'])) {
+        return false;
+    }
+
+    $userId = (int) $_SESSION['usuario_id'];
+    $stmt = $conn->prepare(
+        'SELECT 1 FROM permissoes_paginas WHERE usuario_id = ? AND pagina = ? LIMIT 1'
+    );
+    $stmt->bind_param('is', $userId, $page);
+    $stmt->execute();
+    $allowed = $stmt->get_result()->num_rows === 1;
+    $stmt->close();
+    return $allowed;
 }
 
 function default_user_page(mysqli $conn, int $userId, string $profile): string

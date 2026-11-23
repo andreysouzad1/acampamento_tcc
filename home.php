@@ -172,6 +172,8 @@ require_login($conn);
         <a href="dashboard.php">Painel Geral</a>
         <a href="comunicacao.php">Comunicação</a>
         <a href="buscar_mala.php">Malas</a>
+        <?php if (user_can_access_page($conn, 'enfermagem')): ?><a href="enfermagem.php">Enfermagem</a><?php endif; ?>
+        <?php if (user_can_access_page($conn, 'cozinha')): ?><a href="cozinha.php">Cozinha</a><?php endif; ?>
         <?php if (($_SESSION['usuario_perfil'] ?? '') === 'SuperAdmin'): ?>
             <a href="admin_usuarios.php">Usuários</a>
             <a href="logs_auditoria.php">Auditoria</a>
@@ -225,6 +227,24 @@ require_login($conn);
                 </div>
                 <a href="buscar_mala.php" class="btn-primary">Acessar</a>
             </div>
+            <?php if (user_can_access_page($conn, 'enfermagem')): ?>
+                <div class="nav-card">
+                    <div>
+                        <div class="nav-card-title">Enfermagem</div>
+                        <div class="nav-card-desc">Acompanhamento de alergias, medicamentos e restrições dos inscritos.</div>
+                    </div>
+                    <a href="enfermagem.php" class="btn-primary">Acessar</a>
+                </div>
+            <?php endif; ?>
+            <?php if (user_can_access_page($conn, 'cozinha')): ?>
+                <div class="nav-card">
+                    <div>
+                        <div class="nav-card-title">Cozinha</div>
+                        <div class="nav-card-desc">Consulte as restrições alimentares informadas pelos inscritos.</div>
+                    </div>
+                    <a href="cozinha.php" class="btn-primary">Acessar</a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
