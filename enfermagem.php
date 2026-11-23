@@ -326,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
                     <thead>
                         <tr>
                             <th>Nome</th>
-                            <th>Idade / nascimento</th>
+                            <th>Nascimento / Idade</th>
                             <th>Medicamento controlado</th>
                             <th>Restrição alimentar</th>
                             <th>Alergias</th>
