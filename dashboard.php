@@ -219,6 +219,35 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
             color: #1e293b;
         }
 
+        /* Três botões rápidos alinhados lado a lado */
+        .quick-filters {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .btn-quick {
+            background-color: #f8fafc;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .btn-quick:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+        .btn-quick.is-active {
+            background-color: #3b82f6;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+
         .collapsible-card {
             background: #ffffff;
             padding: 20px;
@@ -499,11 +528,18 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
         </div>
     </div>
 
+    <!-- Três botões compactos lado a lado -->
+    <div class="quick-filters" aria-label="Atalhos de estatísticas">
+        <button type="button" id="quick-genero" class="btn-quick" onclick="focarSecao('genero-content', 'btn-toggle-genero', this)">Gênero</button>
+        <button type="button" id="quick-bairros" class="btn-quick" onclick="focarSecao('bairros-content', 'btn-toggle-bairros', this)">Bairros</button>
+        <button type="button" id="quick-camisas" class="btn-quick" onclick="focarSecao('camisas-content', 'btn-toggle-camisas', this)">Camisetas</button>
+    </div>
+
     <!-- 1º: Distribuição por Gênero -->
     <div class="collapsible-card">
         <div class="card-header">
             <h3>Distribuição por Gênero <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total: <?php echo (int) $total_inscritos; ?> participantes)</span></h3>
-            <button class="btn-toggle" onclick="toggleCard('genero-content', this)">Exibir</button>
+            <button id="btn-toggle-genero" class="btn-toggle" onclick="toggleCard('genero-content', this, 'quick-genero')">Exibir</button>
         </div>
         <div id="genero-content" class="card-content">
             <div class="progress-bar-container" style="margin-top: 10px;">
@@ -525,7 +561,7 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
     <div class="collapsible-card">
         <div class="card-header">
             <h3>Distribuição de Participantes por Bairro - Estado <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Mapeamento regional)</span></h3>
-            <button class="btn-toggle" onclick="toggleCard('bairros-content', this)">Exibir</button>
+            <button id="btn-toggle-bairros" class="btn-toggle" onclick="toggleCard('bairros-content', this, 'quick-bairros')">Exibir</button>
         </div>
         <div id="bairros-content" class="card-content">
             <div class="neighborhood-list" style="margin-top: 10px;">
@@ -555,7 +591,7 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
     <div class="collapsible-card">
         <div class="card-header">
             <h3>Controle de Tamanhos de Camisetas <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total de pedidos contabilizados)</span></h3>
-            <button class="btn-toggle" onclick="toggleCard('camisas-content', this)">Exibir</button>
+            <button id="btn-toggle-camisas" class="btn-toggle" onclick="toggleCard('camisas-content', this, 'quick-camisas')">Exibir</button>
         </div>
         <div id="camisas-content" class="card-content">
             <div class="shirt-grid" style="margin-top: 10px;">
@@ -652,14 +688,30 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
 </div>
 
 <script>
-function toggleCard(contentId, buttonElement) {
+function toggleCard(contentId, buttonElement, quickBtnId) {
     let contentDiv = document.getElementById(contentId);
+    let quickBtn = quickBtnId ? document.getElementById(quickBtnId) : null;
     if (contentDiv.style.display === "none" || contentDiv.style.display === "") {
         contentDiv.style.display = "block";
         buttonElement.textContent = "Ocultar";
+        if (quickBtn) quickBtn.classList.add("is-active");
     } else {
         contentDiv.style.display = "none";
         buttonElement.textContent = "Exibir";
+        if (quickBtn) quickBtn.classList.remove("is-active");
+    }
+}
+
+function focarSecao(contentId, toggleBtnId, quickBtnElement) {
+    let contentDiv = document.getElementById(contentId);
+    let toggleBtn = document.getElementById(toggleBtnId);
+    if (contentDiv && (contentDiv.style.display === "none" || contentDiv.style.display === "")) {
+        contentDiv.style.display = "block";
+        if (toggleBtn) toggleBtn.textContent = "Ocultar";
+        if (quickBtnElement) quickBtnElement.classList.add("is-active");
+    }
+    if (contentDiv && contentDiv.parentElement) {
+        contentDiv.parentElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 }
 
