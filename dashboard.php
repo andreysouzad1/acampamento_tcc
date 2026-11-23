@@ -248,26 +248,32 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
             color: #ffffff;
         }
 
-        .collapsible-card {
+        /* Painel dinâmico exibido apenas quando um dos botões é clicado */
+        .dynamic-panel {
+            display: none;
             background: #ffffff;
             padding: 20px;
             border-radius: 6px;
             border: 1px solid #e2e8f0;
             margin-bottom: 20px;
         }
-        .card-header {
+        .panel-section {
+            display: none;
+        }
+        .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
         }
-        .card-header h3 {
+        .panel-header h3 {
             margin: 0;
             font-size: 14px;
             color: #1e293b;
             font-weight: bold;
         }
-        
-        .btn-toggle {
+        .btn-hide {
             background-color: #e2e8f0;
             color: #334155;
             border: none;
@@ -278,13 +284,9 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
             cursor: pointer;
             transition: background 0.2s;
         }
-        .btn-toggle:hover {
+        .btn-hide:hover {
             background-color: #cbd5e1;
-        }
-
-        .card-content {
-            margin-top: 15px;
-            display: none;
+            color: #0f172a;
         }
 
         .progress-bar-container {
@@ -460,16 +462,6 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
         .btn-excluir { background: #dc2626; color: white; }
         .btn-excluir:hover { background: #b91c1c; }
         button.btn-acao { border: 0; cursor: pointer; }
-
-        /* Rodapé Institucional */
-        .system-footer {
-            text-align: center;
-            font-size: 12px;
-            color: #64748b;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-            margin-top: 25px;
-        }
     </style>
     <link rel="stylesheet" href="navigation.css">
 </head>
@@ -528,21 +520,22 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
         </div>
     </div>
 
-    <!-- Três botões compactos lado a lado -->
+    <!-- Três botões compactos alinhados lado a lado -->
     <div class="quick-filters" aria-label="Atalhos de estatísticas">
-        <button type="button" id="quick-genero" class="btn-quick" onclick="focarSecao('genero-content', 'btn-toggle-genero', this)">Gênero</button>
-        <button type="button" id="quick-bairros" class="btn-quick" onclick="focarSecao('bairros-content', 'btn-toggle-bairros', this)">Bairros</button>
-        <button type="button" id="quick-camisas" class="btn-quick" onclick="focarSecao('camisas-content', 'btn-toggle-camisas', this)">Camisetas</button>
+        <button type="button" id="quick-genero" class="btn-quick" onclick="alternarSecao('secao-genero', this)">Gênero</button>
+        <button type="button" id="quick-bairros" class="btn-quick" onclick="alternarSecao('secao-bairros', this)">Bairros</button>
+        <button type="button" id="quick-camisas" class="btn-quick" onclick="alternarSecao('secao-camisas', this)">Camisetas</button>
     </div>
 
-    <!-- 1º: Distribuição por Gênero -->
-    <div class="collapsible-card">
-        <div class="card-header">
-            <h3>Distribuição por Gênero <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total: <?php echo (int) $total_inscritos; ?> participantes)</span></h3>
-            <button id="btn-toggle-genero" class="btn-toggle" onclick="toggleCard('genero-content', this, 'quick-genero')">Exibir</button>
-        </div>
-        <div id="genero-content" class="card-content">
-            <div class="progress-bar-container" style="margin-top: 10px;">
+    <!-- Painel dinâmico exibido apenas quando um botão é selecionado -->
+    <div id="painel-estatisticas" class="dynamic-panel">
+        <!-- Gênero -->
+        <div id="secao-genero" class="panel-section">
+            <div class="panel-header">
+                <h3>Distribuição por Gênero <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total: <?php echo (int) $total_inscritos; ?> participantes)</span></h3>
+                <button type="button" class="btn-hide" onclick="ocultarPainel()">Ocultar</button>
+            </div>
+            <div class="progress-bar-container">
                 <div class="progress-fem" style="width: <?php echo (int) $perc_fem; ?>%;" title="Mulheres: <?php echo (int) $fem; ?> (<?php echo (int) $perc_fem; ?>%)"></div>
                 <div class="progress-masc" style="width: <?php echo (int) $perc_masc; ?>%;" title="Homens: <?php echo (int) $masc; ?> (<?php echo (int) $perc_masc; ?>%)"></div>
             </div>
@@ -555,16 +548,14 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 2º: Distribuição de Participantes por Bairro - Estado -->
-    <div class="collapsible-card">
-        <div class="card-header">
-            <h3>Distribuição de Participantes por Bairro - Estado <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Mapeamento regional)</span></h3>
-            <button id="btn-toggle-bairros" class="btn-toggle" onclick="toggleCard('bairros-content', this, 'quick-bairros')">Exibir</button>
-        </div>
-        <div id="bairros-content" class="card-content">
-            <div class="neighborhood-list" style="margin-top: 10px;">
+        <!-- Bairros -->
+        <div id="secao-bairros" class="panel-section">
+            <div class="panel-header">
+                <h3>Distribuição por Bairro - Estado <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Mapeamento regional)</span></h3>
+                <button type="button" class="btn-hide" onclick="ocultarPainel()">Ocultar</button>
+            </div>
+            <div class="neighborhood-list">
                 <?php if (!empty($lista_bairros)): ?>
                     <?php foreach ($lista_bairros as $localizacao => $qtd): ?>
                         <?php
@@ -585,16 +576,14 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
                 <?php endif; ?>
             </div>
         </div>
-    </div>
 
-    <!-- 3º: Controle de Tamanhos de Camisetas -->
-    <div class="collapsible-card">
-        <div class="card-header">
-            <h3>Controle de Tamanhos de Camisetas <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total de pedidos contabilizados)</span></h3>
-            <button id="btn-toggle-camisas" class="btn-toggle" onclick="toggleCard('camisas-content', this, 'quick-camisas')">Exibir</button>
-        </div>
-        <div id="camisas-content" class="card-content">
-            <div class="shirt-grid" style="margin-top: 10px;">
+        <!-- Camisetas -->
+        <div id="secao-camisas" class="panel-section">
+            <div class="panel-header">
+                <h3>Controle de Tamanhos de Camisetas <span style="font-weight: normal; font-size: 12px; color: #64748b;">(Total de pedidos contabilizados)</span></h3>
+                <button type="button" class="btn-hide" onclick="ocultarPainel()">Ocultar</button>
+            </div>
+            <div class="shirt-grid">
                 <?php foreach ($totais_camisas as $tamanho => $quantidade): ?>
                     <div class="shirt-box">
                         <span><?php echo h($tamanho); ?></span>
@@ -688,30 +677,26 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
 </div>
 
 <script>
-function toggleCard(contentId, buttonElement, quickBtnId) {
-    let contentDiv = document.getElementById(contentId);
-    let quickBtn = quickBtnId ? document.getElementById(quickBtnId) : null;
-    if (contentDiv.style.display === "none" || contentDiv.style.display === "") {
-        contentDiv.style.display = "block";
-        buttonElement.textContent = "Ocultar";
-        if (quickBtn) quickBtn.classList.add("is-active");
-    } else {
-        contentDiv.style.display = "none";
-        buttonElement.textContent = "Exibir";
-        if (quickBtn) quickBtn.classList.remove("is-active");
+function ocultarPainel() {
+    const painel = document.getElementById("painel-estatisticas");
+    document.querySelectorAll(".panel-section").forEach(sec => sec.style.display = "none");
+    document.querySelectorAll(".btn-quick").forEach(btn => btn.classList.remove("is-active"));
+    if (painel) {
+        painel.style.display = "none";
     }
 }
 
-function focarSecao(contentId, toggleBtnId, quickBtnElement) {
-    let contentDiv = document.getElementById(contentId);
-    let toggleBtn = document.getElementById(toggleBtnId);
-    if (contentDiv && (contentDiv.style.display === "none" || contentDiv.style.display === "")) {
-        contentDiv.style.display = "block";
-        if (toggleBtn) toggleBtn.textContent = "Ocultar";
-        if (quickBtnElement) quickBtnElement.classList.add("is-active");
-    }
-    if (contentDiv && contentDiv.parentElement) {
-        contentDiv.parentElement.scrollIntoView({ behavior: "smooth", block: "nearest" });
+function alternarSecao(secaoId, botaoClicado) {
+    const painel = document.getElementById("painel-estatisticas");
+    const secao = document.getElementById(secaoId);
+    const jaAtiva = botaoClicado.classList.contains("is-active");
+
+    ocultarPainel();
+
+    if (!jaAtiva && painel && secao) {
+        secao.style.display = "block";
+        painel.style.display = "block";
+        botaoClicado.classList.add("is-active");
     }
 }
 
