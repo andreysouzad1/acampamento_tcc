@@ -442,6 +442,7 @@ $total_med = (int) ($conn->query($sql_med)->fetch_assoc()['total'] ?? 0);
             margin-top: 25px;
         }
     </style>
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
 

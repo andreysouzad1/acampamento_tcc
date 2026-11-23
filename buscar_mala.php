@@ -364,6 +364,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($_POST['busca']) || isset($_
             }
         }
     </style>
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
 

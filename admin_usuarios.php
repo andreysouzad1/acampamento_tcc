@@ -488,6 +488,7 @@ while ($permission = $permissionRows->fetch_assoc()) {
             margin-top: 4px;
         }
     </style>
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
 

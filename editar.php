@@ -191,6 +191,7 @@ $inscrito = $result->fetch_assoc();
             background-color: #2563eb;
         }
     </style>
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
 

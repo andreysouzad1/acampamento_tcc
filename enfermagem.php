@@ -274,6 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             }
         }
     </style>
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
 <main class="container">

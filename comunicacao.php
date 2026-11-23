@@ -250,6 +250,7 @@ $result = $conn->query($sql);
             margin-top: 25px;
         }
     </style>
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
 

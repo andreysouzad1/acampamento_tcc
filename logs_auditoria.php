@@ -162,6 +162,7 @@ $logs = $conn->query(
             margin-top: 25px;
         }
     </style>
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
 

@@ -228,6 +228,7 @@ require_login($conn);
             margin-top: 30px;
         }
     </style>
+    <link rel="stylesheet" href="navigation.css">
 </head>
 <body>
 
