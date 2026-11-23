@@ -160,33 +160,33 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
         * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f3f4f6;
+            background-color: #f4f5f7;
             color: #111827;
             margin: 0;
-            padding: 32px 16px;
+            padding: 28px 16px 40px;
         }
         .container {
-            max-width: 1020px;
+            max-width: 820px;
             margin: 0 auto;
             background-color: #ffffff;
-            border-radius: 14px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
-            padding: 32px 36px 36px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+            padding: 24px 36px 32px;
         }
         .top-nav {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 28px;
+            gap: 6px;
+            margin-bottom: 22px;
         }
         .nav-pill {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 7px 14px;
-            border-radius: 7px;
-            font-size: 13px;
+            padding: 5px 11px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: 600;
             text-decoration: none;
             color: #334155;
@@ -203,64 +203,69 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
         }
         .nav-pill.logout {
             background-color: #fee2e2;
-            color: #b91c1c;
+            color: #dc2626;
         }
         .nav-pill.logout:hover {
             background-color: #fecaca;
-            color: #991b1b;
+            color: #b91c1c;
         }
         .page-header {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 22px;
         }
         .page-header h1 {
-            margin: 0 0 6px;
-            font-size: 24px;
+            margin: 0 0 4px;
+            font-size: 21px;
             font-weight: 700;
             color: #0f172a;
-            letter-spacing: -0.015em;
+            letter-spacing: -0.01em;
         }
         .page-header p {
             margin: 0;
-            font-size: 14px;
-            color: #64748b;
+            font-size: 12.5px;
+            color: #6b7280;
         }
         .section-card {
             border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 22px 24px;
+            border-radius: 8px;
+            padding: 16px 18px 18px;
             background-color: #ffffff;
-            margin-bottom: 24px;
+            margin-bottom: 18px;
+        }
+        .section-card:last-child {
+            margin-bottom: 0;
         }
         .section-title {
-            margin: 0 0 18px;
-            font-size: 16px;
+            margin: 0 0 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
             font-weight: 700;
             color: #111827;
         }
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px 20px;
+            gap: 12px 16px;
         }
         .field {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
         }
         .field label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
-            color: #374151;
+            color: #1f2937;
         }
         .field input,
         .field select {
             width: 100%;
-            height: 42px;
-            padding: 8px 12px;
+            height: 36px;
+            padding: 6px 10px;
             border: 1px solid #d1d5db;
-            border-radius: 7px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             color: #111827;
             background-color: #ffffff;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -269,7 +274,7 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
         .field select:focus {
             outline: none;
             border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14);
         }
         .field-submit {
             display: flex;
@@ -279,50 +284,49 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
         .permissions-box {
             grid-column: 1 / -1;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 14px 16px;
+            border-radius: 6px;
+            padding: 10px 12px;
             background-color: #f9fafb;
             margin-top: 2px;
         }
         .permissions-box legend {
-            padding: 0 6px;
-            font-size: 13px;
+            padding: 0 5px;
+            font-size: 12px;
             font-weight: 600;
-            color: #374151;
+            color: #1f2937;
         }
         .checkbox-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px 20px;
-            margin-top: 4px;
+            gap: 8px 16px;
+            margin-top: 2px;
         }
         .checkbox-item {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            font-size: 13px;
+            gap: 6px;
+            font-size: 12px;
             color: #1f2937;
             cursor: pointer;
         }
         .checkbox-item input[type="checkbox"] {
-            width: 15px;
-            height: 15px;
+            width: 14px;
+            height: 14px;
             margin: 0;
             accent-color: #2563eb;
             cursor: pointer;
         }
         .helper-text {
-            font-size: 12px;
+            font-size: 11px;
             color: #6b7280;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             border: 0;
-            border-radius: 7px;
-            font-size: 13px;
+            border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.15s ease, opacity 0.15s ease;
@@ -334,25 +338,24 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
         .btn-primary {
             background-color: #2563eb;
             color: #ffffff;
-            height: 42px;
-            padding: 0 18px;
-            font-size: 14px;
+            height: 36px;
+            padding: 0 14px;
+            font-size: 13px;
             width: 100%;
         }
         .btn-primary:hover:not(:disabled) {
             background-color: #1d4ed8;
         }
         .btn-sm {
-            padding: 6px 11px;
-            font-size: 12px;
+            padding: 5px 10px;
+            font-size: 11.5px;
         }
         .btn-secondary {
-            background-color: #e2e8f0;
-            color: #334155;
+            background-color: #475569;
+            color: #ffffff;
         }
         .btn-secondary:hover:not(:disabled) {
-            background-color: #cbd5e1;
-            color: #0f172a;
+            background-color: #334155;
         }
         .btn-danger {
             background-color: #dc2626;
@@ -364,32 +367,32 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
         .btn-save-perm {
             background-color: #2563eb;
             color: #ffffff;
-            padding: 7px 12px;
-            font-size: 12px;
-            margin-top: 10px;
+            padding: 6px 10px;
+            font-size: 11.5px;
+            margin-top: 8px;
             width: 100%;
         }
         .btn-save-perm:hover:not(:disabled) {
             background-color: #1d4ed8;
         }
         .msg {
-            padding: 12px 16px;
+            padding: 10px 14px;
             background-color: #ecfdf5;
             border: 1px solid #a7f3d0;
             color: #065f46;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13.5px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 12.5px;
             font-weight: 500;
         }
         .err {
-            padding: 12px 16px;
+            padding: 10px 14px;
             background-color: #fef2f2;
             border: 1px solid #fecaca;
             color: #b91c1c;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13.5px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 12.5px;
             font-weight: 500;
         }
         .table-wrap {
@@ -401,10 +404,10 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
             border-collapse: collapse;
         }
         th, td {
-            padding: 11px 12px;
+            padding: 9px 10px;
             border-bottom: 1px solid #e5e7eb;
             text-align: left;
-            font-size: 13px;
+            font-size: 12px;
             vertical-align: top;
         }
         th {
@@ -413,14 +416,17 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
             font-weight: 700;
             white-space: nowrap;
         }
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
         tbody tr:hover {
             background-color: #f9fafb;
         }
         .badge {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 2px 7px;
             border-radius: 999px;
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 600;
         }
         .badge-active {
@@ -435,12 +441,12 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 6px;
+            gap: 5px;
         }
         .actions-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 5px;
         }
         .actions-row form {
             margin: 0;
@@ -452,8 +458,8 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
             list-style: none;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 12px;
+            gap: 4px;
+            font-size: 11.5px;
             font-weight: 600;
             color: #2563eb;
             cursor: pointer;
@@ -464,27 +470,27 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
         }
         details.perm-dropdown > summary::before {
             content: "▸";
-            font-size: 11px;
+            font-size: 10px;
             transition: transform 0.15s ease;
         }
         details.perm-dropdown[open] > summary::before {
             transform: rotate(90deg);
         }
         .perm-panel {
-            margin-top: 8px;
-            padding: 10px 12px;
+            margin-top: 6px;
+            padding: 8px 10px;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
+            border-radius: 6px;
             background-color: #f8fafc;
-            min-width: 210px;
+            min-width: 195px;
         }
         .perm-panel label {
             display: flex;
             align-items: center;
-            gap: 7px;
-            font-size: 12px;
+            gap: 6px;
+            font-size: 11.5px;
             color: #1f2937;
-            padding: 3px 0;
+            padding: 2px 0;
             white-space: nowrap;
             cursor: pointer;
         }
@@ -494,25 +500,13 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
         }
         .perm-note {
             display: block;
-            margin-top: 6px;
-            font-size: 11px;
+            margin-top: 5px;
+            font-size: 10.5px;
             color: #64748b;
             white-space: normal;
         }
-        .footer-link {
-            margin-top: 8px;
-        }
-        .footer-link a {
-            color: #2563eb;
-            font-size: 13.5px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .footer-link a:hover {
-            text-decoration: underline;
-        }
-        @media (max-width: 720px) {
-            .container { padding: 22px 18px; }
+        @media (max-width: 680px) {
+            .container { padding: 20px 16px 24px; }
             .form-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -669,10 +663,6 @@ $paginaAtual = basename($_SERVER['PHP_SELF'] ?? 'admin_usuarios.php');
             </table>
         </div>
     </section>
-
-    <div class="footer-link">
-        <a href="home.php">&larr; Voltar ao Painel Principal</a>
-    </div>
 </div>
 </body>
 </html>
